@@ -1,16 +1,17 @@
 import streamlit as st
 
-RANELADS = [
-    "David", "Enda", "Rob", "Jack", "Monz", "Ois", "Ollie", "Con", 
-    "Kill", "Pauly", "Simo", "Petch", "Vinny", "Lorcan", "Thilo", 
-    "Carl", "Cramps", "Gibb", "Hugo", "Boydie", "Josh", "Jam"
-]
+RANELADS = sorted([
+    "David", "Enda", "Rob", "Jack", "Pauly", "Simo", "Petch", "Vinny", 
+    "Lorcan", "Thilo", "Carl", "Cramps", "Gibb", "Hugo", "Boydie", 
+    "Josh", "Jam", "Monz", "Ois", "Ollie", "Con", "Kill"
+])
 
 def load_css():
     st.markdown("""
         <style>
         .stApp {
             background: #f0f2f6;
+            overflow-x: hidden;
         }
         
         /* Typography */
@@ -103,10 +104,22 @@ def load_css():
             border-radius: 20px;
         }
         
-        /* Hide default elements */
-        footer {visibility: hidden;}
-        #MainMenu {visibility: hidden;}
+        /* Tab Styling */
+        div[data-testid="stTabs"] button {
+            font-size: 1rem;
+            padding: 0.5rem 1rem;
+        }
         
+        @media (max-width: 640px) {
+            div[data-testid="stTabs"] button {
+                font-size: 0.8rem;
+                padding: 0.4rem 0.6rem;
+            }
+            div[data-testid="stTabs"] button p {
+                font-size: 0.9rem;
+            }
+        }
+
         /* Mobile Tweaks */
         @media (max-width: 640px) {
             .main-header {
@@ -115,6 +128,14 @@ def load_css():
             }
             .stButton>button {
                 padding: 1rem;
+            }
+            /* Add padding to the bottom of the app to allow scrolling past keyboard */
+            .main .block-container {
+                padding-bottom: 10rem !important;
+            }
+            /* Make selectboxes easier to tap */
+            div[data-baseweb="select"] {
+                min-height: 45px;
             }
         }
         </style>
