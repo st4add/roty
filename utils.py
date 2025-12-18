@@ -121,9 +121,55 @@ def load_css():
     """, unsafe_allow_html=True)
 
 def show_celebration():
-    st.balloons()
-    st.toast('Vote Cast Successfully! 🎉', icon='✅')
-
+    # removed st.balloons()
+    
+    # Custom cascading text effect
+    st.markdown("""
+        <style>
+        @keyframes fall {
+            0% { top: -10%; opacity: 1; transform: rotate(0deg); }
+            100% { top: 110%; opacity: 0; transform: rotate(360deg); }
+        }
+        
+        .rain-drop {
+            position: fixed;
+            top: -10%;
+            z-index: 999999; /* Max z-index */
+            pointer-events: none;
+            font-weight: bold;
+            font-family: 'Helvetica Neue', sans-serif;
+            animation: fall 8s linear forwards; /* 8s duration */
+        }
+        </style>
+    """, unsafe_allow_html=True)
+    
+    # Generate static HTML elements for the rain to ensure it renders without JS complexity
+    rain_html = ""
+    import random
+    colors = ['#FF4B4B', '#FFD700', '#4CAF50', '#2196F3', '#9C27B0']
+    
+    # Increased count to 50 for more density
+    for i in range(50):
+        left = random.randint(0, 100)
+        # Increased duration range to 5-10s for longer effect
+        duration = random.uniform(5, 10)
+        # Increased delay spread so they keep coming for a while
+        delay = random.uniform(0, 3) # Spread start times over 3s
+        size = random.randint(20, 50)
+        color = random.choice(colors)
+        
+        rain_html += f"""
+        <div class="rain-drop" style="
+            left: {left}vw; 
+            animation-duration: {duration}s; 
+            animation-delay: {delay}s;
+            font-size: {size}px;
+            color: {color};
+        ">Simo is Gay 🏳️‍🌈</div>
+        """
+        
+    st.markdown(rain_html, unsafe_allow_html=True)
+    
 def get_category_emoji(category):
     emojis = {
         "Ranelad of the Year": "👑",

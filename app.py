@@ -53,6 +53,19 @@ def main():
     if not check_password():
         return
 
+    st.markdown("""
+        <div style='background-color: white; padding: 1.5rem; border-radius: 12px; border-left: 5px solid #FF4B4B; margin-bottom: 2rem; box-shadow: 0 2px 8px rgba(0,0,0,0.05);'>
+            <p style='font-size: 1.1rem; line-height: 1.6; color: #333;'>
+                Welcome to the Ranelads of the Year Awards! 🎉 Tonight, we're celebrating the most iconic, extra, and utterly relatable moments of the year. 
+                From meme-worthy fails to trend-setting wins, we're covering it all! 🍿 
+                <br><br>
+                Let's get this awards show started! 🎊 Who's ready for a night of laughs, nostalgia, and maybe a few surprise wins? 😏 
+                <br><br>
+                <strong>#RaneladsOfTheYear</strong> - <em>Also Simo is Gay</em>
+            </p>
+        </div>
+    """, unsafe_allow_html=True)
+
     # Initialize session state for post-vote redirect
     if 'voted' not in st.session_state:
         st.session_state.voted = False
@@ -137,7 +150,7 @@ def main():
                             if success:
                                 st.session_state.voted = True
                                 utils.show_celebration()
-                                time.sleep(1) # Let the user see the balloons
+                                time.sleep(6) # Increased wait time to let animation finish!
                                 st.rerun()
                             else:
                                 st.error("Something went wrong saving your votes.")
