@@ -17,303 +17,32 @@ st.set_page_config(
 dm = DataManager()
 
 def check_password():
-    """Returns `True` if the user had a correct password."""
-
-    def password_entered():
-        """Checks whether a password entered by the user is correct."""
-        if st.session_state["password"] == st.secrets["PASS"]:
-            st.session_state["password_correct"] = True
-            del st.session_state["password"]  # Don't store password in session state
-        else:
-            st.session_state["password_correct"] = False
-
+    """Returns True if the user had a correct password."""
     if "password_correct" not in st.session_state:
-        # First run, show input for password.
-        st.text_input(
-            "Enter the secret password to vote:", type="password", on_change=password_entered, key="password"
-        )
-        return False
-    elif not st.session_state["password_correct"]:
-        # Password not correct, show input + error.
-        st.text_input(
-            "Enter the secret password to vote:", type="password", on_change=password_entered, key="password"
-        )
-        st.error("😕 Password incorrect")
-        return False
-    else:
-        # Password correct.
+        st.session_state["password_correct"] = False
+
+    if st.session_state["password_correct"]:
         return True
 
-def main():
-    utils.load_css()
-
-    st.markdown("<h1 class='main-header'>🏆 ROTY Awards 🏆</h1>", unsafe_allow_html=True)
-    st.markdown("<p style='text-align: center;'>Vote for the ultimate Ranelad of the Year!</p>", unsafe_allow_html=True)
-    
-    if not check_password():
-        return
-
-    # Get custom message from secrets if it exists
-    custom_insert = st.secrets.get("INSERT", "Also Simo is Gay")
-
-    st.markdown(f"""
-        <div style='background-color: white; padding: 1.5rem; border-radius: 12px; border-left: 5px solid #FF4B4B; margin-bottom: 2rem; box-shadow: 0 2px 8px rgba(0,0,0,0.05);'>
-            <p style='font-size: 1.1rem; line-height: 1.6; color: #333;'>
-                Welcome to the Ranelads of the Year Awards! 🎉 Tonight, we're celebrating the most iconic, extra, and utterly relatable moments of the year. 
-                From meme-worthy fails to trend-setting wins, we're covering it all! 🍿 
-                <br><br>
-                Let's get this awards show started! 🎊 Who's ready for a night of laughs, nostalgia, and maybe a few surprise wins? 😏 
-                <br><br>
-                <strong>#RaneladsOfTheYear</strong> - <em>{custom_insert}</em>
-            </p>
-        </div>
-    """, unsafe_allow_html=True)
-
-    # Initialize session state
-    if 'voted' not in st.session_state:
-        st.session_state.voted = False
-    if 'con_acknowledged' not in st.session_state:
-        st.session_state.con_acknowledged = False
-
-    tab1, tab2, tab3 = st.tabs(["🗳️ Vote", "📊 Leaderboard", "📋 Voter Log"])
-
-    with tab1:
-        # Identity Section (Always visible)
-        with st.container(border=True):
-            st.markdown("### 👤 Who are you?")
-            voter_name = st.selectbox(
-                "Select your identity",
-                options=["Select your name..."] + utils.RANELADS,
-                index=0,
-                label_visibility="collapsed",
-                key="voter_identity_select"
-            )
-
-        # Check real-time database status
-        has_voted_in_db = False
-        if voter_name != "Select your name...":
-            has_voted_in_db = dm.has_voted(voter_name)
-
-        # Show success view if they just voted OR already exist in DB
-        if st.session_state.voted or has_voted_in_db:
-             if st.session_state.voted:
-                 st.success("Thanks for voting! 🎉")
-             else:
-                 st.info(f"Welcome back, {voter_name}! You have already cast your votes.")
-             
-             st.info("Check out the Leaderboard to see the results!")
-             
-             render_leaderboard(
-                 categories=[
-                    "Ranelad of the Year",
-                    "Worst Ranelad of the Year",
-                    "Most Improved Ranelad"
-                 ], 
-                 key_prefix="post_vote"
-             )
-             
-        elif voter_name != "Select your name...":
-            # Special acknowledgement for Con
-            if voter_name == "Con" and not st.session_state.con_acknowledged:
-                # Robustly find the dialog function (st.dialog or st.experimental_dialog)
-                dialog_func = getattr(st, "dialog", getattr(st, "experimental_dialog", None))
-                
-                if dialog_func is None:
-                    # Fallback for very old streamlit versions
-                    st.warning("⚠️ Statistically, you are the worst Ranelad in history.")
-                    if st.button("I, Con, acknowledge this fact 😔"):
-                        st.session_state.con_acknowledged = True
-                        st.rerun()
-                else:
-                    @dialog_func("⚠️ Mandatory Acknowledgement")
-                    def con_modal():
-                        st.write("Before you can proceed, you must accept the truth.")
-                        st.warning("Statistically, you are the worst Ranelad in history.")
-                        
-                        # Custom styling for the button inside the modal (robust selectors)
-                        st.markdown("""
-                            <style>
-                            div[role="dialog"] button,
-                            div[role="dialog"] [data-baseweb="button"] button {
-                                background-color: #000000 !important;
-                                border: 2px solid #FF4B4B !important;
-                            }
-                            div[role="dialog"] button,
-                            div[role="dialog"] button * ,
-                            div[role="dialog"] [data-baseweb="button"] button,
-                            div[role="dialog"] [data-baseweb="button"] button * {
-                                color: #FFFFFF !important;
-                                -webkit-text-fill-color: #FFFFFF !important;
-                                opacity: 1 !important;
-                                font-weight: 800 !important;
-                            }
-                            div[role="dialog"] button:hover {
-                                background-color: #333333 !important;
-                            }
-                            </style>
-                        """, unsafe_allow_html=True)
-                        
-                        if st.button("I, Con, acknowledge this fact 😔"):
-                            st.session_state.con_acknowledged = True
-                            st.rerun()
-
-                    con_modal()
-                
-                st.info("Please complete the acknowledgement popup to continue.")
-                st.stop()
-
-            # Show the voting form
-            with st.form("voting_form"):
-                st.markdown("### Cast Your Votes")
-                
-                categories = [
-                    "Ranelad of the Year",
-                    "Worst Ranelad of the Year",
-                    "Most Improved Ranelad"
-                ]
-                
-                votes_to_cast = {}
-                
-                for category in categories:
-                    with st.container(border=True):
-                        st.markdown(f"**{utils.get_category_emoji(category)} {category}**")
-                        candidate = st.selectbox(
-                            f"Nominee for {category}", 
-                            options=["Select a Ranelad..."] + utils.RANELADS,
-                            index=0,
-                            key=f"input_{category}",
-                            label_visibility="collapsed"
-                        )
-                        if candidate and candidate != "Select a Ranelad...":
-                            votes_to_cast[category] = candidate
-
-                submitted = st.form_submit_button("Submit Votes 🚀")
-
-                if submitted:
-                    if not votes_to_cast:
-                        st.warning("Please vote for at least one category!")
-                    else:
-                        success = True
-                        for cat, name in votes_to_cast.items():
-                            if not dm.save_vote(cat, name, voter_name):
-                                success = False
-                        
-                        if success:
-                            st.session_state.voted = True
-                            utils.show_celebration()
-                            time.sleep(6)
-                            st.rerun()
-                        else:
-                            st.error("Something went wrong saving your votes.")
-        else:
-            st.info("Please select your name above to start voting!")
-
-    with tab2:
-        render_leaderboard(
-            categories=[
-                "Ranelad of the Year",
-                "Worst Ranelad of the Year",
-                "Most Improved Ranelad"
-            ],
-            key_prefix="main_tab"
-        )
-
-    with tab3:
-        st.markdown("### 📋 Voter Turnout")
-        st.markdown("Check who has exercised their democratic right!")
-        
-        if st.button("Refresh Log 🔄", key="refresh_log"):
-            st.rerun()
+    def password_entered():
+        # Check if PASS exists in secrets first to prevent crash
+        if "PASS" not in st.secrets:
+            st.error("Developer Error: PASS not set in Streamlit Secrets.")
+            return
             
-        voter_stats = dm.get_voter_stats()
-        
-        if voter_stats.empty:
-            st.info("No voters yet.")
+        if st.session_state["password_input"] == st.secrets["PASS"]:
+            st.session_state["password_correct"] = True
         else:
-            st.dataframe(
-                voter_stats,
-                hide_index=True,
-                use_container_width=True,
-                column_config={
-                    "Voter": st.column_config.TextColumn("Ranelad"),
-                    "Votes Cast": st.column_config.ProgressColumn(
-                        "Participation", 
-                        format="%d votes",
-                        min_value=0, 
-                        max_value=3
-                    ),
-                    "Last Voted": "Timestamp"
-                }
-            )
+            st.session_state["password_correct"] = False
+            st.error("😕 Password incorrect")
 
-    # Sidebar footer
-    with st.sidebar:
-        st.markdown("---")
-        st.markdown("Built for the Ranelads 🍻")
-        
-        # Admin Zone
-        with st.expander("Admin Zone", expanded=False):
-            st.warning("Danger Zone!")
-
-            voters = dm.list_voters()
-            if not voters:
-                st.info("No votes cast yet.")
-            else:
-                with st.popover("🗑️ Delete Individual Voter", use_container_width=True):
-                    st.markdown("### Voter Deletion")
-                    voter_to_delete = st.selectbox(
-                        "Select voter to wipe",
-                        options=["Select a voter..."] + voters,
-                        index=0,
-                        key="admin_voter_to_delete",
-                    )
-
-                    delpass = st.text_input(
-                        "Enter DELPASS to confirm",
-                        type="password",
-                        key="admin_delpass",
-                    )
-
-                    confirm_delete = st.checkbox(
-                        "Delete ALL votes for this person",
-                        key="admin_confirm_delete_voter",
-                    )
-
-                    if st.button("Permanently Delete", key="admin_delete_voter_btn", type="primary", use_container_width=True):
-                        if voter_to_delete == "Select a voter...":
-                            st.error("Pick a voter.")
-                        elif not confirm_delete:
-                            st.error("Check the box.")
-                        else:
-                            try:
-                                expected = st.secrets["DELPASS"]
-                            except:
-                                st.error("DELPASS not set in Secrets.")
-                                st.stop()
-
-                            if delpass != expected:
-                                st.error("Wrong password.")
-                            else:
-                                deleted = dm.delete_votes_for_voter(voter_to_delete)
-                                st.toast(f"Wiped {deleted} votes for {voter_to_delete}!", icon="🗑️")
-                                time.sleep(1)
-                                st.rerun()
-
-            st.divider()
-            if 'clear_clicks' not in st.session_state:
-                st.session_state.clear_clicks = 0
-                
-            if st.button("⚠️ Reset All Votes", key="reset_btn"):
-                st.session_state.clear_clicks += 1
-                clicks_needed = 10 - st.session_state.clear_clicks
-                
-                if clicks_needed <= 0:
-                    dm.clear_votes()
-                    st.session_state.clear_clicks = 0
-                    st.session_state.voted = False
-                    st.toast("All votes have been cleared!", icon="🗑️")
-                    time.sleep(1)
-                    st.rerun()
+    st.text_input(
+        "Enter the secret password to vote:", 
+        type="password", 
+        on_change=password_entered, 
+        key="password_input"
+    )
+    return False
 
 def render_leaderboard(categories, key_prefix="default"):
     st.markdown("### 📈 Live Results")
@@ -353,6 +82,204 @@ def render_leaderboard(categories, key_prefix="default"):
                         </div>
                     """, unsafe_allow_html=True)
                 st.divider()
+
+def main():
+    utils.load_css()
+
+    st.markdown("<h1 class='main-header'>🏆 ROTY Awards 🏆</h1>", unsafe_allow_html=True)
+    st.markdown("<p style='text-align: center;'>Vote for the ultimate Ranelad of the Year!</p>", unsafe_allow_html=True)
+    
+    if not check_password():
+        return
+
+    # Get custom message from secrets
+    custom_insert = st.secrets.get("INSERT", "Also Simo is Gay")
+
+    st.markdown(f"""
+        <div style='background-color: white; padding: 1.5rem; border-radius: 12px; border-left: 5px solid #FF4B4B; margin-bottom: 2rem; box-shadow: 0 2px 8px rgba(0,0,0,0.05);'>
+            <p style='font-size: 1.1rem; line-height: 1.6; color: #333;'>
+                Welcome to the Ranelads of the Year Awards! 🎉 Tonight, we're celebrating the most iconic, extra, and utterly relatable moments of the year. 
+                From meme-worthy fails to trend-setting wins, we're covering it all! 🍿 
+                <br><br>
+                Let's get this awards show started! 🎊 Who's ready for a night of laughs, nostalgia, and maybe a few surprise wins? 😏 
+                <br><br>
+                <strong>#RaneladsOfTheYear</strong> - <em>{custom_insert}</em>
+            </p>
+        </div>
+    """, unsafe_allow_html=True)
+
+    # Initialize session state
+    if 'voted' not in st.session_state:
+        st.session_state.voted = False
+    if 'con_acknowledged' not in st.session_state:
+        st.session_state.con_acknowledged = False
+
+    tab1, tab2, tab3, tab4 = st.tabs(["🗳️ Vote", "📊 Leaderboard", "📋 Voter Log", "🛠️ Admin"])
+
+    with tab1:
+        with st.container(border=True):
+            st.markdown("### 👤 Who are you?")
+            voter_name = st.selectbox(
+                "Select your identity",
+                options=["Select your name..."] + utils.RANELADS,
+                index=0,
+                label_visibility="collapsed",
+                key="voter_identity_select"
+            )
+
+        if voter_name != "Select your name...":
+            # Check real-time database status
+            has_voted_in_db = dm.has_voted(voter_name)
+
+            if st.session_state.voted or has_voted_in_db:
+                 if st.session_state.voted:
+                     st.success("Thanks for voting! 🎉")
+                 else:
+                     st.info(f"Welcome back, {voter_name}! You have already cast your votes.")
+                 
+                 render_leaderboard(
+                     categories=[
+                        "Ranelad of the Year",
+                        "Worst Ranelad of the Year",
+                        "Most Improved Ranelad"
+                     ], 
+                     key_prefix="post_vote"
+                 )
+            else:
+                # Handle Con's special acknowledgement locally in tab1
+                if voter_name == "Con" and not st.session_state.con_acknowledged:
+                    dialog_func = getattr(st, "dialog", getattr(st, "experimental_dialog", None))
+                    if dialog_func:
+                        @dialog_func("⚠️ Mandatory Acknowledgement")
+                        def con_modal():
+                            st.write("Before you can proceed, you must accept the truth.")
+                            st.warning("Statistically, you are the worst Ranelad in history.")
+                            st.markdown("""
+                                <style>
+                                div[role="dialog"] button, div[role="dialog"] [data-baseweb="button"] button {
+                                    background-color: #000000 !important;
+                                    border: 2px solid #FF4B4B !important;
+                                }
+                                div[role="dialog"] button *, div[role="dialog"] [data-baseweb="button"] button * {
+                                    color: #FFFFFF !important;
+                                    -webkit-text-fill-color: #FFFFFF !important;
+                                    font-weight: 800 !important;
+                                }
+                                </style>
+                            """, unsafe_allow_html=True)
+                            if st.button("I, Con, acknowledge this fact 😔"):
+                                st.session_state.con_acknowledged = True
+                                st.rerun()
+                        con_modal()
+                        st.info("Please complete the acknowledgement popup to continue.")
+                    else:
+                        st.warning("⚠️ Statistically, you are the worst Ranelad in history.")
+                        if st.button("I, Con, acknowledge this fact 😔"):
+                            st.session_state.con_acknowledged = True
+                            st.rerun()
+                else:
+                    # Show the actual voting form
+                    with st.form("voting_form"):
+                        st.markdown("### Cast Your Votes")
+                        categories = ["Ranelad of the Year", "Worst Ranelad of the Year", "Most Improved Ranelad"]
+                        votes_to_cast = {}
+                        for category in categories:
+                            with st.container(border=True):
+                                st.markdown(f"**{utils.get_category_emoji(category)} {category}**")
+                                candidate = st.selectbox(
+                                    f"Nominee for {category}", 
+                                    options=["Select a Ranelad..."] + utils.RANELADS,
+                                    index=0,
+                                    key=f"input_{category}",
+                                    label_visibility="collapsed"
+                                )
+                                if candidate and candidate != "Select a Ranelad...":
+                                    votes_to_cast[category] = candidate
+                        if st.form_submit_button("Submit Votes 🚀", use_container_width=True):
+                            if not votes_to_cast:
+                                st.warning("Please vote for at least one category!")
+                            else:
+                                success = True
+                                for cat, name in votes_to_cast.items():
+                                    if not dm.save_vote(cat, name, voter_name):
+                                        success = False
+                                if success:
+                                    st.session_state.voted = True
+                                    utils.show_celebration()
+                                    time.sleep(6)
+                                    st.rerun()
+                                else:
+                                    st.error("Something went wrong saving your votes.")
+        else:
+            st.info("Please select your name above to start voting!")
+
+    with tab2:
+        render_leaderboard(
+            categories=["Ranelad of the Year", "Worst Ranelad of the Year", "Most Improved Ranelad"],
+            key_prefix="main_tab"
+        )
+
+    with tab3:
+        st.markdown("### 📋 Voter Turnout")
+        voter_stats = dm.get_voter_stats()
+        if voter_stats.empty:
+            st.info("No voters yet.")
+        else:
+            st.dataframe(voter_stats, hide_index=True, use_container_width=True)
+
+    with tab4:
+        st.markdown("### 🛠️ Admin Zone")
+        st.warning("Danger Zone!")
+        
+        # Section 1: Wipe Individual
+        with st.container(border=True):
+            st.markdown("#### 🗑️ Delete Individual Voter")
+            voters = dm.list_voters()
+            if not voters:
+                st.info("No voters in the database yet.")
+            else:
+                voter_to_delete = st.selectbox("Select voter to wipe", options=["Select a voter..."] + voters, key="del_voter")
+                if voter_to_delete != "Select a voter...":
+                    delpass = st.text_input("Enter DELPASS", type="password", key="del_pass")
+                    if st.checkbox(f"Confirm wipe for {voter_to_delete}", key="del_conf"):
+                        if st.button("Delete Permanently", type="primary", use_container_width=True):
+                            if "DELPASS" not in st.secrets:
+                                st.error("DELPASS not set in Secrets.")
+                            elif delpass == st.secrets["DELPASS"]:
+                                deleted = dm.delete_votes_for_voter(voter_to_delete)
+                                st.toast(f"Wiped {deleted} votes!", icon="🗑️")
+                                time.sleep(1)
+                                st.rerun()
+                            else:
+                                st.error("Wrong password")
+        
+        st.divider()
+        
+        # Section 2: Wipe All
+        with st.container(border=True):
+            st.markdown("#### 🧨 Reset ALL Data")
+            if 'clear_clicks' not in st.session_state: st.session_state.clear_clicks = 0
+            
+            delpass_all = st.text_input("Enter DELPASS to authorize", type="password", key="del_pass_all")
+            
+            if st.button("⚠️ WIPE EVERYTHING", use_container_width=True):
+                if "DELPASS" not in st.secrets:
+                    st.error("DELPASS not set in Secrets.")
+                elif delpass_all != st.secrets["DELPASS"]:
+                    st.error("Incorrect DELPASS")
+                    st.session_state.clear_clicks = 0
+                else:
+                    st.session_state.clear_clicks += 1
+                    if st.session_state.clear_clicks >= 10:
+                        dm.clear_votes()
+                        st.session_state.clear_clicks = 0
+                        st.session_state.voted = False
+                        st.toast("Wiped everything!", icon="🗑️")
+                        time.sleep(1)
+                        st.rerun()
+                    else:
+                        # Optional: provide no feedback on progress as requested "no indication"
+                        pass
 
 if __name__ == "__main__":
     main()
