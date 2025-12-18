@@ -26,16 +26,14 @@ def main():
     if 'voted' not in st.session_state:
         st.session_state.voted = False
 
-    tab1, tab2 = st.tabs(["🗳️ Vote", "📊 Leaderboard"])
+    tab1, tab2, tab3 = st.tabs(["🗳️ Vote", "📊 Leaderboard", "📋 Voter Log"])
 
     with tab1:
         if st.session_state.voted:
              st.success("Thanks for voting! 🎉")
-             if st.button("Vote Again?"):
-                 st.session_state.voted = False
-                 st.rerun()
-             st.info("Check out the Leaderboard below!")
+             st.info("Check out the Leaderboard to see the results!")
              
+
              render_leaderboard(
                  categories=[
                     "Ranelad of the Year",
@@ -46,63 +44,79 @@ def main():
              )
              
         else:
-            st.markdown("### Cast Your Votes")
-            
-            categories = [
-                "Ranelad of the Year",
-                "Worst Ranelad of the Year",
-                "Most Improved Ranelad"
-            ]
-
-            with st.form("voting_form"):
-                # Voter Identification
-                st.markdown("#### 👤 Identification")
+            # Identity Section
+            with st.container(border=True):
+                st.markdown("### 👤 Who are you?")
                 voter_name = st.selectbox(
-                    "Who are you?",
+                    "Select your identity",
                     options=["Select your name..."] + utils.RANELADS,
                     index=0,
-                    help="Please identify yourself to vote."
+                    label_visibility="collapsed"
                 )
 
-                st.markdown("---")
-                
-                votes_to_cast = {}
-                
-                for category in categories:
-                    st.markdown(f"<h3 class='category-header'>{utils.get_category_emoji(category)} {category}</h3>", unsafe_allow_html=True)
-                    
-                    # Candidate Selection
-                    candidate = st.selectbox(
-                        f"Nominee for {category}", 
-                        options=["Select a Ranelad..."] + utils.RANELADS,
-                        index=0,
-                        key=f"input_{category}",
-                        help=f"Who deserves {category}?"
-                    )
-                    
-                    if candidate and candidate != "Select a Ranelad...":
-                        votes_to_cast[category] = candidate
+            # Check if this user has already voted
+            has_already_voted = False
+            if voter_name != "Select your name...":
+                if dm.has_voted(voter_name):
+                    has_already_voted = True
+                    st.error(f"⚠️ Sorry {voter_name}, you have already voted! One vote per Ranelad.")
+                    st.info("Check the 'Voter Log' tab if you think this is a mistake.")
 
-                submitted = st.form_submit_button("Submit Votes 🚀")
+            if not has_already_voted:
+                with st.form("voting_form"):
+                    
+                    categories = [
+                        "Ranelad of the Year",
+                        "Worst Ranelad of the Year",
+                        "Most Improved Ranelad"
+                    ]
+                    
+                    votes_to_cast = {}
+                    
+                    for category in categories:
+                        with st.container(border=True):
+                            # Header
+                            st.markdown(f"**{utils.get_category_emoji(category)} {category}**")
+                            
+                            # Candidate Selection
+                            candidate = st.selectbox(
+                                f"Nominee for {category}", 
+                                options=["Select a Ranelad..."] + utils.RANELADS,
+                                index=0,
+                                key=f"input_{category}",
+                                help=f"Who deserves {category}?",
+                                label_visibility="collapsed"
+                            )
+                            
+                            if candidate and candidate != "Select a Ranelad...":
+                                votes_to_cast[category] = candidate
 
-                if submitted:
-                    if voter_name == "Select your name...":
-                        st.error("Please select your name first!")
-                    elif not votes_to_cast:
-                        st.warning("Please vote for at least one category!")
-                    else:
-                        success = True
-                        for cat, name in votes_to_cast.items():
-                            if not dm.save_vote(cat, name, voter_name):
-                                success = False
-                        
-                        if success:
-                            st.session_state.voted = True
-                            utils.show_celebration()
-                            time.sleep(1) # Let the user see the balloons
-                            st.rerun()
+                    submitted = st.form_submit_button("Submit Votes 🚀")
+
+                    if submitted:
+                        if voter_name == "Select your name...":
+                            st.error("Please select your name first!")
+                        elif not votes_to_cast:
+                            st.warning("Please vote for at least one category!")
                         else:
-                            st.error("Something went wrong saving your votes.")
+                            success = True
+                            for cat, name in votes_to_cast.items():
+                                if not dm.save_vote(cat, name, voter_name):
+                                    success = False
+                            
+                            if success:
+                                st.session_state.voted = True
+                                utils.show_celebration()
+                                time.sleep(1) # Let the user see the balloons
+                                st.rerun()
+                            else:
+                                st.error("Something went wrong saving your votes.")
+            else:
+                # If they have voted, maybe show a "View Results" button instead of the form
+                if st.button("View Results 📊"):
+                    # We can't switch tabs easily, but we can show the leaderboard here
+                    st.session_state.voted = True
+                    st.rerun()
 
     with tab2:
         render_leaderboard(
@@ -114,10 +128,58 @@ def main():
             key_prefix="main_tab"
         )
 
+    with tab3:
+        st.markdown("### 📋 Voter Turnout")
+        st.markdown("Check who has exercised their democratic right!")
+        
+        if st.button("Refresh Log 🔄", key="refresh_log"):
+            st.rerun()
+            
+        voter_stats = dm.get_voter_stats()
+        
+        if voter_stats.empty:
+            st.info("No voters yet.")
+        else:
+            # Display as a nice interactive dataframe or table
+            st.dataframe(
+                voter_stats,
+                hide_index=True,
+                use_container_width=True,
+                column_config={
+                    "Voter": st.column_config.TextColumn("Ranelad", help="The voter"),
+                    "Votes Cast": st.column_config.ProgressColumn(
+                        "Participation", 
+                        format="%d votes",
+                        min_value=0, 
+                        max_value=3,
+                        help="Number of categories voted for"
+                    ),
+                    "Last Voted": "Timestamp"
+                }
+            )
+
     # Sidebar footer
     with st.sidebar:
         st.markdown("---")
         st.markdown("Built for the Ranelads 🍻")
+        
+        # Admin Zone
+        with st.expander("Admin Zone", expanded=False):
+            st.warning("Danger Zone!")
+            if 'clear_clicks' not in st.session_state:
+                st.session_state.clear_clicks = 0
+                
+            if st.button("⚠️ Reset All Votes", key="reset_btn"):
+                st.session_state.clear_clicks += 1
+                clicks_needed = 10 - st.session_state.clear_clicks
+                
+                if clicks_needed <= 0:
+                    dm.clear_votes()
+                    st.session_state.clear_clicks = 0
+                    st.session_state.voted = False
+                    st.toast("All votes have been cleared!", icon="🗑️")
+                    time.sleep(1)
+                    st.rerun()
 
 def render_leaderboard(categories, key_prefix="default"):
     st.markdown("### 📈 Live Results")
