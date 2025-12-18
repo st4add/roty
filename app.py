@@ -44,9 +44,14 @@ def check_password():
     )
     return False
 
+# Helper for live updates (st.fragment is preferred if available)
+def live_update_wrapper(func):
+    if hasattr(st, "fragment"):
+        return st.fragment(run_every=1)(func)
+    return func
+
+@live_update_wrapper
 def render_leaderboard(categories, key_prefix="default"):
-    st.markdown("### 📈 Live Results")
-    
     # Check if results are locked
     settings = dm.get_settings()
     is_locked = settings.get("results_locked", False)
@@ -69,41 +74,24 @@ def render_leaderboard(categories, key_prefix="default"):
                     st.error("Incorrect password")
         return
 
+    # Container for the live race
+    race_container = st.container()
+    
+    with race_container:
+        df = dm.get_results_df()
+        
+        for category in categories:
+            html_str = utils.render_horse_race_html(category, df)
+            # Use st.html if available (Streamlit 1.34+), otherwise fallback to markdown
+            if hasattr(st, "html"):
+                st.html(html_str)
+            else:
+                st.markdown(html_str, unsafe_allow_html=True)
+
     if st.button("Refresh & Sync Everything 🔄", key=f"refresh_btn_{key_prefix}", use_container_width=True):
         st.session_state.voted = False
         st.session_state.con_acknowledged = False
         st.rerun()
-
-    df = dm.get_results_df()
-    
-    if df.empty:
-        st.info("No votes cast yet. Be the first!")
-    else:
-        for category in categories:
-            st.markdown(f"#### {utils.get_category_emoji(category)} {category}")
-            cat_df = df[df['Category'] == category].copy()
-            if cat_df.empty:
-                st.text("No votes in this category yet.")
-            else:
-                cat_df = cat_df.sort_values(by="Count", ascending=False).reset_index(drop=True)
-                for index, row in cat_df.iterrows():
-                    rank = index + 1
-                    name = utils.decorate_name(row['Candidate'])
-                    count = row['Count']
-                    medal = "🥇" if rank == 1 else "🥈" if rank == 2 else "🥉" if rank == 3 else f"#{rank}"
-                    card_class = "leaderboard-card"
-                    if rank == 1: card_class += " rank-1"
-                    elif rank == 2: card_class += " rank-2"
-                    elif rank == 3: card_class += " rank-3"
-                    
-                    st.markdown(f"""
-                        <div class="{card_class}">
-                            <span class="medal">{medal}</span>
-                            <span class="candidate-name">{name}</span>
-                            <span class="vote-count">{count}</span>
-                        </div>
-                    """, unsafe_allow_html=True)
-                st.divider()
 
 def main():
     utils.load_css()
