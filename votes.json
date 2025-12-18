@@ -35,6 +35,24 @@
             "candidate": "Enda",
             "timestamp": "2025-12-18T17:27:10.041241",
             "voter": null
+        },
+        {
+            "category": "Ranelad of the Year",
+            "candidate": "David",
+            "timestamp": "2025-12-18T17:42:04.151466",
+            "voter": "David"
+        },
+        {
+            "category": "Worst Ranelad of the Year",
+            "candidate": "Enda",
+            "timestamp": "2025-12-18T17:42:04.152344",
+            "voter": "David"
+        },
+        {
+            "category": "Most Improved Ranelad",
+            "candidate": "Monz",
+            "timestamp": "2025-12-18T17:42:04.153062",
+            "voter": "David"
         }
     ]
 }

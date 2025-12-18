@@ -26,13 +26,13 @@ class DataManager:
         except (json.JSONDecodeError, FileNotFoundError):
             return []
 
-    def save_vote(self, category, candidate, voter_name=None):
+    def save_vote(self, category, candidate, voter_name):
         votes = self.load_votes()
         new_vote = {
             "category": category,
             "candidate": candidate,
             "timestamp": datetime.now().isoformat(),
-            "voter": voter_name  # Optional, if we want to track who voted
+            "voter": voter_name 
         }
         votes.append(new_vote)
         
@@ -60,4 +60,3 @@ class DataManager:
         results = df.groupby(["category", "candidate"]).size().reset_index(name="count")
         results.columns = ["Category", "Candidate", "Count"]
         return results
-
