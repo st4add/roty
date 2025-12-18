@@ -50,6 +50,26 @@ class DataManager:
             json.dump(initial_data, f)
         return True
 
+    def delete_votes_for_voter(self, voter_name: str) -> int:
+        """Delete ALL votes cast by a specific voter. Returns the number of deleted votes."""
+        votes = self.load_votes()
+        if not votes:
+            return 0
+
+        remaining = [v for v in votes if v.get("voter") != voter_name]
+        deleted_count = len(votes) - len(remaining)
+
+        with open(self.file_path, "w") as f:
+            json.dump({"votes": remaining}, f, indent=4)
+
+        return deleted_count
+
+    def list_voters(self):
+        """Return sorted unique voter names that have cast at least one vote."""
+        votes = self.load_votes()
+        voters = sorted({v.get("voter") for v in votes if v.get("voter")})
+        return voters
+
     def get_candidates(self, category):
         """Get unique list of candidates already voted for in a category for autocomplete"""
         votes = self.load_votes()

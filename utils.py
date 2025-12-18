@@ -165,7 +165,7 @@ def show_celebration():
             animation-delay: {delay}s;
             font-size: {size}px;
             color: {color};
-        ">Simo is Gay 🏳️‍🌈</div>
+        ">Simo 🌈</div>
         """
         
     st.markdown(rain_html, unsafe_allow_html=True)

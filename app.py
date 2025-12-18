@@ -53,7 +53,10 @@ def main():
     if not check_password():
         return
 
-    st.markdown("""
+    # Get custom message from secrets if it exists
+    custom_insert = st.secrets.get("INSERT", "Also Simo is Gay")
+
+    st.markdown(f"""
         <div style='background-color: white; padding: 1.5rem; border-radius: 12px; border-left: 5px solid #FF4B4B; margin-bottom: 2rem; box-shadow: 0 2px 8px rgba(0,0,0,0.05);'>
             <p style='font-size: 1.1rem; line-height: 1.6; color: #333;'>
                 Welcome to the Ranelads of the Year Awards! 🎉 Tonight, we're celebrating the most iconic, extra, and utterly relatable moments of the year. 
@@ -61,20 +64,43 @@ def main():
                 <br><br>
                 Let's get this awards show started! 🎊 Who's ready for a night of laughs, nostalgia, and maybe a few surprise wins? 😏 
                 <br><br>
-                <strong>#RaneladsOfTheYear</strong> - <em>Also Simo is Gay</em>
+                <strong>#RaneladsOfTheYear</strong> - <em>{custom_insert}</em>
             </p>
         </div>
     """, unsafe_allow_html=True)
 
-    # Initialize session state for post-vote redirect
+    # Initialize session state
     if 'voted' not in st.session_state:
         st.session_state.voted = False
+    if 'con_acknowledged' not in st.session_state:
+        st.session_state.con_acknowledged = False
 
     tab1, tab2, tab3 = st.tabs(["🗳️ Vote", "📊 Leaderboard", "📋 Voter Log"])
 
     with tab1:
-        if st.session_state.voted:
-             st.success("Thanks for voting! 🎉")
+        # Identity Section (Always visible)
+        with st.container(border=True):
+            st.markdown("### 👤 Who are you?")
+            voter_name = st.selectbox(
+                "Select your identity",
+                options=["Select your name..."] + utils.RANELADS,
+                index=0,
+                label_visibility="collapsed",
+                key="voter_identity_select"
+            )
+
+        # Check real-time database status
+        has_voted_in_db = False
+        if voter_name != "Select your name...":
+            has_voted_in_db = dm.has_voted(voter_name)
+
+        # Show success view if they just voted OR already exist in DB
+        if st.session_state.voted or has_voted_in_db:
+             if st.session_state.voted:
+                 st.success("Thanks for voting! 🎉")
+             else:
+                 st.info(f"Welcome back, {voter_name}! You have already cast your votes.")
+             
              st.info("Check out the Leaderboard to see the results!")
              
              render_leaderboard(
@@ -86,80 +112,90 @@ def main():
                  key_prefix="post_vote"
              )
              
-        else:
-            # Identity Section
-            with st.container(border=True):
-                st.markdown("### 👤 Who are you?")
-                voter_name = st.selectbox(
-                    "Select your identity",
-                    options=["Select your name..."] + utils.RANELADS,
-                    index=0,
-                    label_visibility="collapsed"
-                )
-
-            # Check if this user has already voted
-            has_already_voted = False
-            if voter_name != "Select your name...":
-                if dm.has_voted(voter_name):
-                    has_already_voted = True
-                    st.error(f"⚠️ Sorry {voter_name}, you have already voted! One vote per Ranelad.")
-                    st.info("Check the 'Voter Log' tab if you think this is a mistake.")
-
-            if not has_already_voted:
-                with st.form("voting_form"):
+        elif voter_name != "Select your name...":
+            # Special acknowledgement for Con
+            if voter_name == "Con" and not st.session_state.con_acknowledged:
+                @st.experimental_dialog("⚠️ Mandatory Acknowledgement")
+                def con_modal():
+                    st.write("Before you can proceed, you must accept the truth.")
+                    st.warning("Statistically, you are the worst Ranelad in history.")
                     
-                    categories = [
-                        "Ranelad of the Year",
-                        "Worst Ranelad of the Year",
-                        "Most Improved Ranelad"
-                    ]
+                    # Custom styling for the button inside the modal (robust selectors)
+                    st.markdown("""
+                        <style>
+                        div[role="dialog"] button,
+                        div[role="dialog"] [data-baseweb="button"] button {
+                            background-color: #000000 !important;
+                            border: 2px solid #FF4B4B !important;
+                        }
+                        div[role="dialog"] button,
+                        div[role="dialog"] button * ,
+                        div[role="dialog"] [data-baseweb="button"] button,
+                        div[role="dialog"] [data-baseweb="button"] button * {
+                            color: #FFFFFF !important;
+                            -webkit-text-fill-color: #FFFFFF !important;
+                            opacity: 1 !important;
+                            font-weight: 800 !important;
+                        }
+                        div[role="dialog"] button:hover {
+                            background-color: #333333 !important;
+                        }
+                        </style>
+                    """, unsafe_allow_html=True)
                     
-                    votes_to_cast = {}
-                    
-                    for category in categories:
-                        with st.container(border=True):
-                            # Header
-                            st.markdown(f"**{utils.get_category_emoji(category)} {category}**")
-                            
-                            # Candidate Selection
-                            candidate = st.selectbox(
-                                f"Nominee for {category}", 
-                                options=["Select a Ranelad..."] + utils.RANELADS,
-                                index=0,
-                                key=f"input_{category}",
-                                help=f"Who deserves {category}?",
-                                label_visibility="collapsed"
-                            )
-                            
-                            if candidate and candidate != "Select a Ranelad...":
-                                votes_to_cast[category] = candidate
+                    if st.button("I, Con, acknowledge this fact 😔"):
+                        st.session_state.con_acknowledged = True
+                        st.rerun()
 
-                    submitted = st.form_submit_button("Submit Votes 🚀")
+                con_modal()
+                st.info("Please complete the acknowledgement popup to continue.")
+                st.stop()
 
-                    if submitted:
-                        if voter_name == "Select your name...":
-                            st.error("Please select your name first!")
-                        elif not votes_to_cast:
-                            st.warning("Please vote for at least one category!")
+            # Show the voting form
+            with st.form("voting_form"):
+                st.markdown("### Cast Your Votes")
+                
+                categories = [
+                    "Ranelad of the Year",
+                    "Worst Ranelad of the Year",
+                    "Most Improved Ranelad"
+                ]
+                
+                votes_to_cast = {}
+                
+                for category in categories:
+                    with st.container(border=True):
+                        st.markdown(f"**{utils.get_category_emoji(category)} {category}**")
+                        candidate = st.selectbox(
+                            f"Nominee for {category}", 
+                            options=["Select a Ranelad..."] + utils.RANELADS,
+                            index=0,
+                            key=f"input_{category}",
+                            label_visibility="collapsed"
+                        )
+                        if candidate and candidate != "Select a Ranelad...":
+                            votes_to_cast[category] = candidate
+
+                submitted = st.form_submit_button("Submit Votes 🚀")
+
+                if submitted:
+                    if not votes_to_cast:
+                        st.warning("Please vote for at least one category!")
+                    else:
+                        success = True
+                        for cat, name in votes_to_cast.items():
+                            if not dm.save_vote(cat, name, voter_name):
+                                success = False
+                        
+                        if success:
+                            st.session_state.voted = True
+                            utils.show_celebration()
+                            time.sleep(6)
+                            st.rerun()
                         else:
-                            success = True
-                            for cat, name in votes_to_cast.items():
-                                if not dm.save_vote(cat, name, voter_name):
-                                    success = False
-                            
-                            if success:
-                                st.session_state.voted = True
-                                utils.show_celebration()
-                                time.sleep(6) # Increased wait time to let animation finish!
-                                st.rerun()
-                            else:
-                                st.error("Something went wrong saving your votes.")
-            else:
-                # If they have voted, maybe show a "View Results" button instead of the form
-                if st.button("View Results 📊"):
-                    # We can't switch tabs easily, but we can show the leaderboard here
-                    st.session_state.voted = True
-                    st.rerun()
+                            st.error("Something went wrong saving your votes.")
+        else:
+            st.info("Please select your name above to start voting!")
 
     with tab2:
         render_leaderboard(
@@ -183,19 +219,17 @@ def main():
         if voter_stats.empty:
             st.info("No voters yet.")
         else:
-            # Display as a nice interactive dataframe or table
             st.dataframe(
                 voter_stats,
                 hide_index=True,
                 use_container_width=True,
                 column_config={
-                    "Voter": st.column_config.TextColumn("Ranelad", help="The voter"),
+                    "Voter": st.column_config.TextColumn("Ranelad"),
                     "Votes Cast": st.column_config.ProgressColumn(
                         "Participation", 
                         format="%d votes",
                         min_value=0, 
-                        max_value=3,
-                        help="Number of categories voted for"
+                        max_value=3
                     ),
                     "Last Voted": "Timestamp"
                 }
@@ -209,6 +243,52 @@ def main():
         # Admin Zone
         with st.expander("Admin Zone", expanded=False):
             st.warning("Danger Zone!")
+
+            voters = dm.list_voters()
+            if not voters:
+                st.info("No votes cast yet.")
+            else:
+                with st.popover("🗑️ Delete Individual Voter", use_container_width=True):
+                    st.markdown("### Voter Deletion")
+                    voter_to_delete = st.selectbox(
+                        "Select voter to wipe",
+                        options=["Select a voter..."] + voters,
+                        index=0,
+                        key="admin_voter_to_delete",
+                    )
+
+                    delpass = st.text_input(
+                        "Enter DELPASS to confirm",
+                        type="password",
+                        key="admin_delpass",
+                    )
+
+                    confirm_delete = st.checkbox(
+                        "Delete ALL votes for this person",
+                        key="admin_confirm_delete_voter",
+                    )
+
+                    if st.button("Permanently Delete", key="admin_delete_voter_btn", type="primary", use_container_width=True):
+                        if voter_to_delete == "Select a voter...":
+                            st.error("Pick a voter.")
+                        elif not confirm_delete:
+                            st.error("Check the box.")
+                        else:
+                            try:
+                                expected = st.secrets["DELPASS"]
+                            except:
+                                st.error("DELPASS not set in Secrets.")
+                                st.stop()
+
+                            if delpass != expected:
+                                st.error("Wrong password.")
+                            else:
+                                deleted = dm.delete_votes_for_voter(voter_to_delete)
+                                st.toast(f"Wiped {deleted} votes for {voter_to_delete}!", icon="🗑️")
+                                time.sleep(1)
+                                st.rerun()
+
+            st.divider()
             if 'clear_clicks' not in st.session_state:
                 st.session_state.clear_clicks = 0
                 
@@ -227,8 +307,9 @@ def main():
 def render_leaderboard(categories, key_prefix="default"):
     st.markdown("### 📈 Live Results")
     
-    # Refresh button
-    if st.button("Refresh Data 🔄", key=f"refresh_btn_{key_prefix}"):
+    if st.button("Refresh & Sync Everything 🔄", key=f"refresh_btn_{key_prefix}", use_container_width=True):
+        st.session_state.voted = False
+        st.session_state.con_acknowledged = False
         st.rerun()
 
     df = dm.get_results_df()
@@ -238,35 +319,20 @@ def render_leaderboard(categories, key_prefix="default"):
     else:
         for category in categories:
             st.markdown(f"#### {utils.get_category_emoji(category)} {category}")
-            
             cat_df = df[df['Category'] == category].copy()
-            
             if cat_df.empty:
                 st.text("No votes in this category yet.")
             else:
-                # Sort descending for display (Top 1 first)
                 cat_df = cat_df.sort_values(by="Count", ascending=False).reset_index(drop=True)
-                
-                # Display Top 3 in special styling
                 for index, row in cat_df.iterrows():
                     rank = index + 1
                     name = row['Candidate']
                     count = row['Count']
-                    
-                    medal = ""
+                    medal = "🥇" if rank == 1 else "🥈" if rank == 2 else "🥉" if rank == 3 else f"#{rank}"
                     card_class = "leaderboard-card"
-                    
-                    if rank == 1:
-                        medal = "🥇"
-                        card_class += " rank-1"
-                    elif rank == 2:
-                        medal = "🥈"
-                        card_class += " rank-2"
-                    elif rank == 3:
-                        medal = "🥉"
-                        card_class += " rank-3"
-                    else:
-                        medal = f"#{rank}"
+                    if rank == 1: card_class += " rank-1"
+                    elif rank == 2: card_class += " rank-2"
+                    elif rank == 3: card_class += " rank-3"
                     
                     st.markdown(f"""
                         <div class="{card_class}">
@@ -275,7 +341,6 @@ def render_leaderboard(categories, key_prefix="default"):
                             <span class="vote-count">{count}</span>
                         </div>
                     """, unsafe_allow_html=True)
-                
                 st.divider()
 
 if __name__ == "__main__":
