@@ -115,39 +115,50 @@ def main():
         elif voter_name != "Select your name...":
             # Special acknowledgement for Con
             if voter_name == "Con" and not st.session_state.con_acknowledged:
-                @st.experimental_dialog("⚠️ Mandatory Acknowledgement")
-                def con_modal():
-                    st.write("Before you can proceed, you must accept the truth.")
-                    st.warning("Statistically, you are the worst Ranelad in history.")
-                    
-                    # Custom styling for the button inside the modal (robust selectors)
-                    st.markdown("""
-                        <style>
-                        div[role="dialog"] button,
-                        div[role="dialog"] [data-baseweb="button"] button {
-                            background-color: #000000 !important;
-                            border: 2px solid #FF4B4B !important;
-                        }
-                        div[role="dialog"] button,
-                        div[role="dialog"] button * ,
-                        div[role="dialog"] [data-baseweb="button"] button,
-                        div[role="dialog"] [data-baseweb="button"] button * {
-                            color: #FFFFFF !important;
-                            -webkit-text-fill-color: #FFFFFF !important;
-                            opacity: 1 !important;
-                            font-weight: 800 !important;
-                        }
-                        div[role="dialog"] button:hover {
-                            background-color: #333333 !important;
-                        }
-                        </style>
-                    """, unsafe_allow_html=True)
-                    
+                # Robustly find the dialog function (st.dialog or st.experimental_dialog)
+                dialog_func = getattr(st, "dialog", getattr(st, "experimental_dialog", None))
+                
+                if dialog_func is None:
+                    # Fallback for very old streamlit versions
+                    st.warning("⚠️ Statistically, you are the worst Ranelad in history.")
                     if st.button("I, Con, acknowledge this fact 😔"):
                         st.session_state.con_acknowledged = True
                         st.rerun()
+                else:
+                    @dialog_func("⚠️ Mandatory Acknowledgement")
+                    def con_modal():
+                        st.write("Before you can proceed, you must accept the truth.")
+                        st.warning("Statistically, you are the worst Ranelad in history.")
+                        
+                        # Custom styling for the button inside the modal (robust selectors)
+                        st.markdown("""
+                            <style>
+                            div[role="dialog"] button,
+                            div[role="dialog"] [data-baseweb="button"] button {
+                                background-color: #000000 !important;
+                                border: 2px solid #FF4B4B !important;
+                            }
+                            div[role="dialog"] button,
+                            div[role="dialog"] button * ,
+                            div[role="dialog"] [data-baseweb="button"] button,
+                            div[role="dialog"] [data-baseweb="button"] button * {
+                                color: #FFFFFF !important;
+                                -webkit-text-fill-color: #FFFFFF !important;
+                                opacity: 1 !important;
+                                font-weight: 800 !important;
+                            }
+                            div[role="dialog"] button:hover {
+                                background-color: #333333 !important;
+                            }
+                            </style>
+                        """, unsafe_allow_html=True)
+                        
+                        if st.button("I, Con, acknowledge this fact 😔"):
+                            st.session_state.con_acknowledged = True
+                            st.rerun()
 
-                con_modal()
+                    con_modal()
+                
                 st.info("Please complete the acknowledgement popup to continue.")
                 st.stop()
 
