@@ -16,12 +16,43 @@ st.set_page_config(
 # Initialize Data Manager
 dm = DataManager()
 
+def check_password():
+    """Returns `True` if the user had a correct password."""
+
+    def password_entered():
+        """Checks whether a password entered by the user is correct."""
+        if st.session_state["password"] == st.secrets["PASS"]:
+            st.session_state["password_correct"] = True
+            del st.session_state["password"]  # Don't store password in session state
+        else:
+            st.session_state["password_correct"] = False
+
+    if "password_correct" not in st.session_state:
+        # First run, show input for password.
+        st.text_input(
+            "Enter the secret password to vote:", type="password", on_change=password_entered, key="password"
+        )
+        return False
+    elif not st.session_state["password_correct"]:
+        # Password not correct, show input + error.
+        st.text_input(
+            "Enter the secret password to vote:", type="password", on_change=password_entered, key="password"
+        )
+        st.error("😕 Password incorrect")
+        return False
+    else:
+        # Password correct.
+        return True
+
 def main():
     utils.load_css()
 
     st.markdown("<h1 class='main-header'>🏆 ROTY Awards 🏆</h1>", unsafe_allow_html=True)
     st.markdown("<p style='text-align: center;'>Vote for the ultimate Ranelad of the Year!</p>", unsafe_allow_html=True)
     
+    if not check_password():
+        return
+
     # Initialize session state for post-vote redirect
     if 'voted' not in st.session_state:
         st.session_state.voted = False
@@ -33,7 +64,6 @@ def main():
              st.success("Thanks for voting! 🎉")
              st.info("Check out the Leaderboard to see the results!")
              
-
              render_leaderboard(
                  categories=[
                     "Ranelad of the Year",
