@@ -1,5 +1,6 @@
 import streamlit as st
 
+# Updated to trigger refresh on Streamlit Cloud
 RANELADS = sorted([
     "David 👑", "Enda", "Rob 👑", "Jack 👑", "Pauly", "Simo 👑", "Petch", "Vinny", 
     "Lorcan", "Thilo", "Carl", "Cramps", "Gibb", "Hugo", "Boydie", 
@@ -107,29 +108,38 @@ def decorate_name(name):
 
 def render_horse_race_html(category, results_df):
     """Generates the HTML for a single category horse race with NO leading indentation."""
-    # Filter to only the candidates in this category
-    cat_df = results_df[results_df['Category'] == category].copy()
+    # Create a map of existing votes
+    votes_map = {row['Candidate']: row['Count'] for _, row in results_df[results_df['Category'] == category].iterrows()}
     
+    # We want ALL horses to appear on the track
     # Header - NO INDENTATION to avoid triggering markdown code blocks
     html = f'<div class="race-track-container"><div class="race-track-header">{category}</div><div class="finish-line"></div>'
     
-    if cat_df.empty:
+    # Track only Ranelads who have at least one vote to avoid overcrowding the screen
+    # But ensure they all start from 0 if needed. 
+    # For now, let's show only horses with at least 1 vote to keep it readable on mobile.
+    voted_horses = []
+    for r in RANELADS:
+        count = votes_map.get(r, 0)
+        if count > 0:
+            voted_horses.append({'name': r, 'count': count})
+    
+    if not voted_horses:
         html += '<div style="color: white; text-align: center; padding: 2rem;">The horses are still in the gate... (No votes yet)</div>'
     else:
-        # Sort for display
-        cat_df = cat_df.sort_values(by="Count", ascending=False)
+        # Sort by count descending
+        voted_horses = sorted(voted_horses, key=lambda x: x['count'], reverse=True)
         
-        # We define the finish line distance as a fixed number of votes.
-        # Given there are ~22 Ranelads, let's say the finish line is at 15 votes.
-        # This makes it feel like a real race where they progress as votes come in.
+        # Finish line is 15 votes
         finish_line_votes = 15
         
-        for _, row in cat_df.iterrows():
-            name = decorate_name(row['Candidate'])
-            count = row['Count']
+        for horse in voted_horses:
+            name = decorate_name(horse['name'])
+            count = horse['count']
             
             # Progress: absolute based on vote count
-            # Scaled to 85% width. If they exceed finish_line_votes, they stay at the finish line.
+            # 0 votes = 0% left
+            # 1 vote = (1/15) * 85%
             progress = min((count / finish_line_votes) * 85, 85)
             
             html += f'<div class="horse-lane"><div class="horse-container" style="left: {progress}%;"><span class="horse-emoji">🐎</span><span class="horse-name">{name} ({count} votes)</span></div></div>'

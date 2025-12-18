@@ -3,7 +3,7 @@ import plotly.express as px
 import pandas as pd
 import time
 from data_manager import DataManager
-import utils
+import utils 
 
 # Page Configuration
 st.set_page_config(
@@ -81,12 +81,16 @@ def render_leaderboard(categories, key_prefix="default"):
         df = dm.get_results_df()
         
         for category in categories:
-            html_str = utils.render_horse_race_html(category, df)
-            # Use st.html if available (Streamlit 1.34+), otherwise fallback to markdown
-            if hasattr(st, "html"):
-                st.html(html_str)
-            else:
-                st.markdown(html_str, unsafe_allow_html=True)
+            # We call the function directly from the module
+            try:
+                html_str = utils.render_horse_race_html(category, df)
+                if hasattr(st, "html"):
+                    st.html(html_str)
+                else:
+                    st.markdown(html_str, unsafe_allow_html=True)
+            except AttributeError:
+                st.error("Wait... system is updating. Please refresh in 5 seconds.")
+                st.stop()
 
     if st.button("Refresh & Sync Everything 🔄", key=f"refresh_btn_{key_prefix}", use_container_width=True):
         st.session_state.voted = False
