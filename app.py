@@ -169,7 +169,7 @@ def main():
                  )
             else:
                 # Handle Con's special acknowledgement locally in tab1
-                if voter_name == "Con" and not st.session_state.con_acknowledged:
+                if "Con" in voter_name and not st.session_state.con_acknowledged:
                     dialog_func = getattr(st, "dialog", getattr(st, "experimental_dialog", None))
                     if dialog_func:
                         @dialog_func("⚠️ Mandatory Acknowledgement")
@@ -189,14 +189,14 @@ def main():
                                 }
                                 </style>
                             """, unsafe_allow_html=True)
-                            if st.button("I, Con, acknowledge this fact 😔"):
+                            if st.button(f"I, {voter_name}, acknowledge this fact 😔"):
                                 st.session_state.con_acknowledged = True
                                 st.rerun()
                         con_modal()
                         st.info("Please complete the acknowledgement popup to continue.")
                     else:
                         st.warning("⚠️ Statistically, you are the worst Ranelad in history.")
-                        if st.button("I, Con, acknowledge this fact 😔"):
+                        if st.button(f"I, {voter_name}, acknowledge this fact 😔"):
                             st.session_state.con_acknowledged = True
                             st.rerun()
                 else:

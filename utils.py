@@ -3,7 +3,7 @@ import streamlit as st
 RANELADS = sorted([
     "David 👑", "Enda", "Rob 👑", "Jack 👑", "Pauly", "Simo 👑", "Petch", "Vinny", 
     "Lorcan", "Thilo", "Carl", "Cramps", "Gibb", "Hugo", "Boydie", 
-    "Josh", "Jam", "Monz", "Ois", "Ollie", "Con", "Kill 👑"
+    "Josh", "Jam", "Monz", "Ois", "Ollie", "Con 💩💩", "Kill 👑"
 ])
 
 def load_css():
@@ -192,12 +192,15 @@ def show_celebration():
     st.markdown(rain_html, unsafe_allow_html=True)
     
 def decorate_name(name):
-    """Adds crowns to specific VIP names for display."""
+    """Adds crowns or other emojis to specific names for display."""
     if not name:
         return name
     
-    # Remove any existing crown to avoid duplicates
-    clean_name = name.replace(" 👑", "").strip()
+    # Remove any existing custom emojis to avoid duplicates
+    clean_name = name.replace(" 👑", "").replace(" 💩💩", "").strip()
+    
+    if clean_name == "Con":
+        return f"{clean_name} 💩💩"
     
     vips = ["David", "Rob", "Kill", "Jack", "Simo"]
     if clean_name in vips:
