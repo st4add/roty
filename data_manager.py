@@ -13,56 +13,78 @@ class DataManager:
     def _ensure_file_exists(self):
         if not os.path.exists(self.file_path):
             initial_data = {
-                "votes": []
+                "votes": [],
+                "settings": {
+                    "results_locked": False
+                }
             }
             with open(self.file_path, "w") as f:
-                json.dump(initial_data, f)
+                json.dump(initial_data, f, indent=4)
+        else:
+            # Migration: Ensure settings key exists in existing file
+            data = self._read_all()
+            if "settings" not in data:
+                data["settings"] = {"results_locked": False}
+                self._write_all(data)
 
-    def load_votes(self):
+    def _read_all(self):
         try:
             with open(self.file_path, "r") as f:
-                data = json.load(f)
-            return data.get("votes", [])
+                return json.load(f)
         except (json.JSONDecodeError, FileNotFoundError):
-            return []
+            return {"votes": [], "settings": {"results_locked": False}}
+
+    def _write_all(self, data):
+        with open(self.file_path, "w") as f:
+            json.dump(data, f, indent=4)
+
+    def load_votes(self):
+        return self._read_all().get("votes", [])
 
     def save_vote(self, category, candidate, voter_name):
-        votes = self.load_votes()
+        data = self._read_all()
         new_vote = {
             "category": category,
             "candidate": candidate,
             "timestamp": datetime.now().isoformat(),
             "voter": voter_name 
         }
-        votes.append(new_vote)
-        
-        with open(self.file_path, "w") as f:
-            json.dump({"votes": votes}, f, indent=4)
-        
+        data["votes"].append(new_vote)
+        self._write_all(data)
         return True
 
     def clear_votes(self):
-        """Clears all votes from the file"""
-        initial_data = {
-            "votes": []
-        }
-        with open(self.file_path, "w") as f:
-            json.dump(initial_data, f)
+        """Clears all votes but preserves settings"""
+        data = self._read_all()
+        data["votes"] = []
+        self._write_all(data)
         return True
 
     def delete_votes_for_voter(self, voter_name: str) -> int:
         """Delete ALL votes cast by a specific voter. Returns the number of deleted votes."""
-        votes = self.load_votes()
+        data = self._read_all()
+        votes = data.get("votes", [])
         if not votes:
             return 0
 
         remaining = [v for v in votes if v.get("voter") != voter_name]
         deleted_count = len(votes) - len(remaining)
-
-        with open(self.file_path, "w") as f:
-            json.dump({"votes": remaining}, f, indent=4)
+        
+        data["votes"] = remaining
+        self._write_all(data)
 
         return deleted_count
+
+    def get_settings(self):
+        """Get application settings"""
+        return self._read_all().get("settings", {"results_locked": False})
+
+    def update_settings(self, new_settings):
+        """Update application settings"""
+        data = self._read_all()
+        data["settings"] = new_settings
+        self._write_all(data)
+        return True
 
     def list_voters(self):
         """Return sorted unique voter names that have cast at least one vote."""

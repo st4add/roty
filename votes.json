@@ -1,1 +1,43 @@
-{"votes": []}
+{
+    "votes": [
+        {
+            "category": "Ranelad of the Year",
+            "candidate": "Ois",
+            "timestamp": "2025-12-18T20:03:50.594916",
+            "voter": "David"
+        },
+        {
+            "category": "Worst Ranelad of the Year",
+            "candidate": "Jack",
+            "timestamp": "2025-12-18T20:03:50.596397",
+            "voter": "David"
+        },
+        {
+            "category": "Most Improved Ranelad",
+            "candidate": "Monz",
+            "timestamp": "2025-12-18T20:03:50.597030",
+            "voter": "David"
+        },
+        {
+            "category": "Ranelad of the Year",
+            "candidate": "Rob",
+            "timestamp": "2025-12-18T20:04:33.754380",
+            "voter": "Con"
+        },
+        {
+            "category": "Worst Ranelad of the Year",
+            "candidate": "Monz",
+            "timestamp": "2025-12-18T20:04:33.755764",
+            "voter": "Con"
+        },
+        {
+            "category": "Most Improved Ranelad",
+            "candidate": "Jack",
+            "timestamp": "2025-12-18T20:04:33.756215",
+            "voter": "Con"
+        }
+    ],
+    "settings": {
+        "results_locked": true
+    }
+}

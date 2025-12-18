@@ -47,6 +47,28 @@ def check_password():
 def render_leaderboard(categories, key_prefix="default"):
     st.markdown("### 📈 Live Results")
     
+    # Check if results are locked
+    settings = dm.get_settings()
+    is_locked = settings.get("results_locked", False)
+    
+    # Session state to track if current user has unlocked results for this session
+    bypass_key = f"results_unlocked_{key_prefix}"
+    if bypass_key not in st.session_state:
+        st.session_state[bypass_key] = False
+        
+    if is_locked and not st.session_state[bypass_key]:
+        st.warning("🔒 The live results are currently locked by the Admin.")
+        
+        with st.expander("Admin? Unlock to view"):
+            unlock_pass = st.text_input("Enter DELPASS to view results", type="password", key=f"unlock_results_pass_{key_prefix}")
+            if st.button("Unlock Results", key=f"unlock_results_btn_{key_prefix}", use_container_width=True):
+                if "DELPASS" in st.secrets and unlock_pass == st.secrets["DELPASS"]:
+                    st.session_state[bypass_key] = True
+                    st.rerun()
+                else:
+                    st.error("Incorrect password")
+        return
+
     if st.button("Refresh & Sync Everything 🔄", key=f"refresh_btn_{key_prefix}", use_container_width=True):
         st.session_state.voted = False
         st.session_state.con_acknowledged = False
@@ -260,7 +282,7 @@ def main():
             st.markdown("#### 🧨 Reset ALL Data")
             if 'clear_clicks' not in st.session_state: st.session_state.clear_clicks = 0
             
-            delpass_all = st.text_input("Enter DELPASS to authorize", type="password", key="del_pass_all")
+            delpass_all = st.text_input("Enter DELPASS to authorize wipe", type="password", key="del_pass_all")
             
             if st.button("⚠️ WIPE EVERYTHING", use_container_width=True):
                 if "DELPASS" not in st.secrets:
@@ -280,6 +302,31 @@ def main():
                     else:
                         # Optional: provide no feedback on progress as requested "no indication"
                         pass
+
+        st.divider()
+
+        # Section 3: Results Visibility
+        with st.container(border=True):
+            st.markdown("#### 👁️ Results Visibility")
+            settings = dm.get_settings()
+            is_locked = settings.get("results_locked", False)
+            
+            st.info(f"Current Status: {'🔒 LOCKED' if is_locked else '🔓 PUBLIC'}")
+            
+            new_lock_state = st.checkbox("Lock Live Results", value=is_locked)
+            
+            if new_lock_state != is_locked:
+                lock_pass = st.text_input("Enter DELPASS to change visibility", type="password", key="lock_pass")
+                if st.button("Update Visibility", type="primary", use_container_width=True):
+                    if "DELPASS" not in st.secrets:
+                        st.error("DELPASS not set in Secrets.")
+                    elif lock_pass == st.secrets["DELPASS"]:
+                        dm.update_settings({"results_locked": new_lock_state})
+                        st.toast(f"Results are now {'LOCKED' if new_lock_state else 'PUBLIC'}!", icon="👁️")
+                        time.sleep(1)
+                        st.rerun()
+                    else:
+                        st.error("Wrong password")
 
 if __name__ == "__main__":
     main()
