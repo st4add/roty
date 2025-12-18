@@ -1,9 +1,9 @@
 import streamlit as st
 
 RANELADS = sorted([
-    "David", "Enda", "Rob", "Jack", "Pauly", "Simo", "Petch", "Vinny", 
+    "David 👑", "Enda", "Rob 👑", "Jack 👑", "Pauly", "Simo 👑", "Petch", "Vinny", 
     "Lorcan", "Thilo", "Carl", "Cramps", "Gibb", "Hugo", "Boydie", 
-    "Josh", "Jam", "Monz", "Ois", "Ollie", "Con", "Kill"
+    "Josh", "Jam", "Monz", "Ois", "Ollie", "Con", "Kill 👑"
 ])
 
 def load_css():
@@ -191,6 +191,19 @@ def show_celebration():
         
     st.markdown(rain_html, unsafe_allow_html=True)
     
+def decorate_name(name):
+    """Adds crowns to specific VIP names for display."""
+    if not name:
+        return name
+    
+    # Remove any existing crown to avoid duplicates
+    clean_name = name.replace(" 👑", "").strip()
+    
+    vips = ["David", "Rob", "Kill", "Jack", "Simo"]
+    if clean_name in vips:
+        return f"{clean_name} 👑"
+    return name
+
 def get_category_emoji(category):
     emojis = {
         "Ranelad of the Year": "👑",

@@ -88,7 +88,7 @@ def render_leaderboard(categories, key_prefix="default"):
                 cat_df = cat_df.sort_values(by="Count", ascending=False).reset_index(drop=True)
                 for index, row in cat_df.iterrows():
                     rank = index + 1
-                    name = row['Candidate']
+                    name = utils.decorate_name(row['Candidate'])
                     count = row['Count']
                     medal = "🥇" if rank == 1 else "🥈" if rank == 2 else "🥉" if rank == 3 else f"#{rank}"
                     card_class = "leaderboard-card"
@@ -157,7 +157,7 @@ def main():
                  if st.session_state.voted:
                      st.success("Thanks for voting! 🎉")
                  else:
-                     st.info(f"Welcome back, {voter_name}! You have already cast your votes.")
+                     st.info(f"Welcome back, {utils.decorate_name(voter_name)}! You have already cast your votes.")
                  
                  render_leaderboard(
                      categories=[
@@ -247,6 +247,9 @@ def main():
         if voter_stats.empty:
             st.info("No voters yet.")
         else:
+            # Apply decoration to voter names in the dataframe
+            if "Voter" in voter_stats.columns:
+                voter_stats["Voter"] = voter_stats["Voter"].apply(utils.decorate_name)
             st.dataframe(voter_stats, hide_index=True, use_container_width=True)
 
     with tab4:
@@ -260,8 +263,16 @@ def main():
             if not voters:
                 st.info("No voters in the database yet.")
             else:
-                voter_to_delete = st.selectbox("Select voter to wipe", options=["Select a voter..."] + voters, key="del_voter")
-                if voter_to_delete != "Select a voter...":
+                # Create a mapping of decorated names to original names for deletion logic
+                voter_options = {utils.decorate_name(v): v for v in voters}
+                selected_display = st.selectbox(
+                    "Select voter to wipe", 
+                    options=["Select a voter..."] + list(voter_options.keys()), 
+                    key="del_voter"
+                )
+                
+                if selected_display != "Select a voter...":
+                    voter_to_delete = voter_options[selected_display]
                     delpass = st.text_input("Enter DELPASS", type="password", key="del_pass")
                     if st.checkbox(f"Confirm wipe for {voter_to_delete}", key="del_conf"):
                         if st.button("Delete Permanently", type="primary", use_container_width=True):
