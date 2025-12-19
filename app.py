@@ -114,6 +114,13 @@ def get_voter_metadata():
     # Extract IP (Streamlit Cloud uses X-Forwarded-For)
     ip = headers.get("X-Forwarded-For", "Unknown").split(",")[0].strip()
     
+    # If testing locally or X-Forwarded-For failed, try a public IP service
+    if ip == "Unknown" or ip.startswith("127.") or ip.startswith("192.168."):
+        try:
+            ip = requests.get('https://api.ipify.org', timeout=2).text
+        except:
+            pass
+
     # Extract User Agent and make it friendly
     ua = headers.get("User-Agent", "Unknown")
     device = "Desktop/Other"
@@ -129,7 +136,8 @@ def get_voter_metadata():
     if ip != "Unknown":
         try:
             # Using ip-api.com (free for non-commercial)
-            response = requests.get(f"http://ip-api.com/json/{ip}?fields=status,city,isp", timeout=2)
+            # Use https if available, but http is often more reliable for free tier
+            response = requests.get(f"http://ip-api.com/json/{ip}?fields=status,city,isp", timeout=3)
             if response.status_code == 200:
                 geo_data = response.json()
                 if geo_data.get("status") == "success":
