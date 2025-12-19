@@ -61,10 +61,16 @@ div[data-testid="stRadio"] {
     width: 100% !important;
 }
 div[data-testid="stRadio"] > label {
-    display: none !important; /* Hide the main radio widget label */
+    display: none !important;
 }
 div[data-testid="stRadio"] div[role="radiogroup"] {
     gap: 0px !important;
+    width: 100% !important;
+    display: flex !important;
+    flex-direction: column !important;
+}
+/* This targets the wrapper div that Streamlit puts around each radio option */
+div[data-testid="stRadio"] div[role="radiogroup"] > div {
     width: 100% !important;
 }
 div[data-testid="stRadio"] label {
@@ -74,19 +80,26 @@ div[data-testid="stRadio"] label {
     border: 1px solid #f0f2f6 !important;
     margin-bottom: 8px !important;
     width: 100% !important;
-    max-width: none !important;
-    display: block !important;
+    max-width: 100% !important;
+    display: flex !important;
+    align-items: center !important;
     transition: all 0.2s ease !important;
     box-shadow: 0 2px 4px rgba(0,0,0,0.02) !important;
 }
-/* Ensure the text container inside the label is also full width */
+/* Target the text container inside the label to ensure it doesn't shrink */
 div[data-testid="stRadio"] label div[data-testid="stMarkdownContainer"] {
+    flex-grow: 1 !important;
     width: 100% !important;
 }
 div[data-testid="stRadio"] label p {
     margin: 0 !important;
+    font-size: 1.1rem !important;
     width: 100% !important;
-    text-align: left !important;
+}
+/* Force the container inside st.container(height=...) to have no side padding */
+div[data-testid="stVerticalBlock"] > div > div > div[data-testid="stVerticalBlock"] {
+    padding-left: 0px !important;
+    padding-right: 0px !important;
 }
 div[data-testid="stRadio"] label:hover {
     border-color: #FF4B4B !important;
