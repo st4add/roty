@@ -100,29 +100,32 @@ def render_leaderboard(categories, key_prefix="default"):
 
 def get_voter_metadata():
     """Captures IP, Device, City, and Provider info for auditing."""
+    # 1. Get headers from Streamlit
     try:
-        # Modern Streamlit (1.30+)
         headers = st.context.headers
     except:
-        try:
-            # Older versions
-            from streamlit.web.server.websocket_headers import _get_websocket_headers
-            headers = _get_websocket_headers()
-        except:
-            headers = {}
+        headers = {}
 
-    # Extract IP (Streamlit Cloud uses X-Forwarded-For)
-    ip = headers.get("X-Forwarded-For", "Unknown").split(",")[0].strip()
+    # 2. Robust IP extraction (check multiple common headers used by proxies/clouds)
+    # Streamlit Cloud uses X-Forwarded-For. We want the FIRST IP in the list.
+    ip = "Unknown"
+    for header in ["X-Forwarded-For", "x-forwarded-for", "X-Real-IP", "x-real-ip", "Remote-Addr"]:
+        val = headers.get(header)
+        if val and val != "Unknown":
+            ip = val.split(",")[0].strip()
+            break
     
-    # If testing locally or X-Forwarded-For failed, try a public IP service
-    if ip == "Unknown" or ip.startswith("127.") or ip.startswith("192.168."):
+    # 3. Handle local testing (if still unknown or local, and NOT on cloud)
+    # We only use the ipify fallback if we are definitely not on a cloud server
+    is_cloud = any(k in headers for k in ["X-Streamlit-User", "X-Vercel-Id", "X-Forwarded-For"])
+    if not is_cloud and (ip == "Unknown" or ip.startswith("127.") or ip.startswith("192.168.")):
         try:
             ip = requests.get('https://api.ipify.org', timeout=2).text
         except:
             pass
 
-    # Extract User Agent and make it friendly
-    ua = headers.get("User-Agent", "Unknown")
+    # 4. Device Recognition
+    ua = headers.get("User-Agent", headers.get("user-agent", "Unknown"))
     device = "Desktop/Other"
     if "iPhone" in ua: device = "iPhone"
     elif "Android" in ua: device = "Android Phone"
@@ -130,13 +133,12 @@ def get_voter_metadata():
     elif "Macintosh" in ua: device = "Mac Desktop"
     elif "Windows" in ua: device = "Windows Desktop"
     
-    # Fetch Geo and ISP data (City and Mobile/Internet Provider)
+    # 5. Geolocation Lookup
     city = "Unknown"
     isp = "Unknown"
     if ip != "Unknown":
         try:
-            # Using ip-api.com (free for non-commercial)
-            # Use https if available, but http is often more reliable for free tier
+            # We use the IP we found to get the user's city/ISP
             response = requests.get(f"http://ip-api.com/json/{ip}?fields=status,city,isp", timeout=3)
             if response.status_code == 200:
                 geo_data = response.json()
@@ -144,7 +146,7 @@ def get_voter_metadata():
                     city = geo_data.get("city", "Unknown")
                     isp = geo_data.get("isp", "Unknown")
         except:
-            pass # Fail gracefully if API is down or blocked
+            pass
             
     return {
         "ip": ip, 
