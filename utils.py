@@ -57,25 +57,44 @@ div[data-baseweb="select"] { min-height: 45px; }
 .finish-line { position: absolute; right: 40px; top: 0; bottom: 0; width: 10px; background: repeating-linear-gradient(0deg, #fff, #fff 10px, #000 10px, #000 20px); box-shadow: 2px 0 5px rgba(0,0,0,0.3); z-index: 1; }
 
 /* Custom Scroll List Styling (Radio buttons look like list items) */
+div[data-testid="stRadio"] {
+    width: 100% !important;
+}
+div[data-testid="stRadio"] > label {
+    display: none !important; /* Hide the main radio widget label */
+}
 div[data-testid="stRadio"] div[role="radiogroup"] {
     gap: 0px !important;
+    width: 100% !important;
 }
 div[data-testid="stRadio"] label {
     background: white !important;
-    padding: 12px 16px !important;
+    padding: 14px 16px !important;
     border-radius: 10px !important;
     border: 1px solid #f0f2f6 !important;
-    margin-bottom: 6px !important;
+    margin-bottom: 8px !important;
     width: 100% !important;
+    max-width: none !important;
+    display: block !important;
     transition: all 0.2s ease !important;
     box-shadow: 0 2px 4px rgba(0,0,0,0.02) !important;
+}
+/* Ensure the text container inside the label is also full width */
+div[data-testid="stRadio"] label div[data-testid="stMarkdownContainer"] {
+    width: 100% !important;
+}
+div[data-testid="stRadio"] label p {
+    margin: 0 !important;
+    width: 100% !important;
+    text-align: left !important;
 }
 div[data-testid="stRadio"] label:hover {
     border-color: #FF4B4B !important;
     background: #fff5f5 !important;
 }
 /* Hide the radio circle itself */
-div[data-testid="stRadio"] input[type="radio"] {
+div[data-testid="stRadio"] input[type="radio"], 
+div[data-testid="stRadio"] [data-testid="stWidgetLabel"] {
     display: none !important;
 }
 /* Selected state styling */
