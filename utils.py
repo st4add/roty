@@ -63,15 +63,14 @@ div[data-testid="stRadio"] {
 div[data-testid="stRadio"] > label {
     display: none !important;
 }
-div[data-testid="stRadio"] div[role="radiogroup"] {
-    gap: 0px !important;
+/* Standardize the radio group and all its nested div wrappers to be full width */
+div[data-testid="stRadio"] div[role="radiogroup"], 
+div[data-testid="stRadio"] div[role="radiogroup"] > div,
+div[data-testid="stRadio"] [data-testid="stHorizontalBlock"] {
     width: 100% !important;
     display: flex !important;
     flex-direction: column !important;
-}
-/* This targets the wrapper div that Streamlit puts around each radio option */
-div[data-testid="stRadio"] div[role="radiogroup"] > div {
-    width: 100% !important;
+    gap: 0px !important;
 }
 div[data-testid="stRadio"] label {
     background: white !important;
@@ -80,26 +79,40 @@ div[data-testid="stRadio"] label {
     border: 1px solid #f0f2f6 !important;
     margin-bottom: 8px !important;
     width: 100% !important;
+    min-width: 100% !important;
     max-width: 100% !important;
     display: flex !important;
     align-items: center !important;
     transition: all 0.2s ease !important;
     box-shadow: 0 2px 4px rgba(0,0,0,0.02) !important;
+    box-sizing: border-box !important;
 }
-/* Target the text container inside the label to ensure it doesn't shrink */
-div[data-testid="stRadio"] label div[data-testid="stMarkdownContainer"] {
+/* Target every single child of the label to force width */
+div[data-testid="stRadio"] label > div,
+div[data-testid="stRadio"] label div[data-testid="stMarkdownContainer"],
+div[data-testid="stRadio"] label p {
     flex-grow: 1 !important;
     width: 100% !important;
-}
-div[data-testid="stRadio"] label p {
+    min-width: 100% !important;
     margin: 0 !important;
+    text-align: left !important;
     font-size: 1.1rem !important;
-    width: 100% !important;
 }
-/* Force the container inside st.container(height=...) to have no side padding */
-div[data-testid="stVerticalBlock"] > div > div > div[data-testid="stVerticalBlock"] {
+/* Force the scrollable container to strip all internal padding that causes the "gap" at the sides */
+[data-testid="stVerticalBlockBorderWrapper"] [data-testid="stVerticalBlock"] [data-testid="stVerticalBlock"] {
     padding-left: 0px !important;
     padding-right: 0px !important;
+}
+/* Ensure the radio button group within these containers uses all space */
+[data-testid="stVerticalBlockBorderWrapper"] [data-testid="stRadio"] {
+    padding: 0px !important;
+    margin: 0px !important;
+}
+/* Mobile specific override to ensure edge-to-edge */
+@media (max-width: 640px) {
+    div[data-testid="stRadio"] label {
+        padding: 16px !important;
+    }
 }
 div[data-testid="stRadio"] label:hover {
     border-color: #FF4B4B !important;
