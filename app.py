@@ -134,7 +134,7 @@ def main():
         with st.container(border=True):
             st.markdown("### 👤 Who are you?")
             # Use a scrollable container with radio buttons to prevent keyboard popup
-            with st.container(height=250):
+            with st.container(height=350):
                 voter_name = st.radio(
                     "Select your identity",
                     options=utils.RANELADS,
@@ -203,7 +203,7 @@ def main():
                             with st.container(border=True):
                                 st.markdown(f"**{utils.get_category_emoji(category)} {category}**")
                                 # Use a scrollable container with radio buttons to prevent keyboard popup
-                                with st.container(height=200):
+                                with st.container(height=300):
                                     candidate = st.radio(
                                         f"Nominee for {category}", 
                                         options=utils.RANELADS,
@@ -263,7 +263,7 @@ def main():
                 voter_options = {utils.decorate_name(v): v for v in voters}
                 
                 # Use scrollable radio for admin too for consistency and mobile friendliness
-                with st.container(height=200):
+                with st.container(height=300):
                     selected_display = st.radio(
                         "Select voter to wipe", 
                         options=list(voter_options.keys()), 
