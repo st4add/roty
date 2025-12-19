@@ -124,14 +124,14 @@ class DataManager:
         return False
 
     def get_voter_stats(self):
-        """Get stats on who has voted including device fingerprints"""
+        """Get stats on who has voted including device fingerprints and geo info"""
         votes = self.load_votes()
         if not votes:
-            return pd.DataFrame(columns=["Voter", "Votes Cast", "Last Voted", "Device Info", "IP Address"])
+            return pd.DataFrame(columns=["Voter", "Votes Cast", "Last Voted", "Device Info", "City", "Provider", "IP Address"])
         
         df = pd.DataFrame(votes)
         if "voter" not in df.columns:
-             return pd.DataFrame(columns=["Voter", "Votes Cast", "Last Voted", "Device Info", "IP Address"])
+             return pd.DataFrame(columns=["Voter", "Votes Cast", "Last Voted", "Device Info", "City", "Provider", "IP Address"])
              
         # Helper to extract metadata fields
         def get_meta(voter_name, field):
@@ -152,6 +152,8 @@ class DataManager:
         
         # Add metadata columns
         stats["Device Info"] = stats["Voter"].apply(lambda x: get_meta(x, "user_agent"))
+        stats["City"] = stats["Voter"].apply(lambda x: get_meta(x, "city"))
+        stats["Provider"] = stats["Voter"].apply(lambda x: get_meta(x, "isp"))
         stats["IP Address"] = stats["Voter"].apply(lambda x: get_meta(x, "ip"))
         
         # Format timestamp for better readability

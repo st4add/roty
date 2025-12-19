@@ -2,6 +2,7 @@ import streamlit as st
 import plotly.express as px
 import pandas as pd
 import time
+import requests
 from data_manager import DataManager
 import utils 
 
@@ -98,7 +99,7 @@ def render_leaderboard(categories, key_prefix="default"):
         st.rerun()
 
 def get_voter_metadata():
-    """Captures IP and Device info for auditing."""
+    """Captures IP, Device, City, and Provider info for auditing."""
     try:
         # Modern Streamlit (1.30+)
         headers = st.context.headers
@@ -122,7 +123,28 @@ def get_voter_metadata():
     elif "Macintosh" in ua: device = "Mac Desktop"
     elif "Windows" in ua: device = "Windows Desktop"
     
-    return {"ip": ip, "user_agent": device, "raw_ua": ua}
+    # Fetch Geo and ISP data (City and Mobile/Internet Provider)
+    city = "Unknown"
+    isp = "Unknown"
+    if ip != "Unknown":
+        try:
+            # Using ip-api.com (free for non-commercial)
+            response = requests.get(f"http://ip-api.com/json/{ip}?fields=status,city,isp", timeout=2)
+            if response.status_code == 200:
+                geo_data = response.json()
+                if geo_data.get("status") == "success":
+                    city = geo_data.get("city", "Unknown")
+                    isp = geo_data.get("isp", "Unknown")
+        except:
+            pass # Fail gracefully if API is down or blocked
+            
+    return {
+        "ip": ip, 
+        "user_agent": device, 
+        "city": city,
+        "isp": isp,
+        "raw_ua": ua
+    }
 
 def main():
     utils.load_css()
