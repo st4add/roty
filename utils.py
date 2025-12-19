@@ -62,16 +62,13 @@ div[data-testid="stRadio"] div[role="radiogroup"] {
 }
 div[data-testid="stRadio"] label {
     background: white !important;
-    padding: 18px 20px !important;
-    border-radius: 12px !important;
+    padding: 12px 16px !important;
+    border-radius: 10px !important;
     border: 1px solid #f0f2f6 !important;
-    margin-bottom: 8px !important;
+    margin-bottom: 6px !important;
     width: 100% !important;
     transition: all 0.2s ease !important;
     box-shadow: 0 2px 4px rgba(0,0,0,0.02) !important;
-}
-div[data-testid="stRadio"] label p {
-    font-size: 1.25rem !important;
 }
 div[data-testid="stRadio"] label:hover {
     border-color: #FF4B4B !important;
