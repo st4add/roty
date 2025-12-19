@@ -41,7 +41,7 @@ class DataManager:
     def load_votes(self):
         return self._read_all().get("votes", [])
 
-    def save_vote(self, category, candidate, voter_name):
+    def save_vote(self, category, candidate, voter_name, metadata=None):
         data = self._read_all()
         new_vote = {
             "category": category,
@@ -49,6 +49,9 @@ class DataManager:
             "timestamp": datetime.now().isoformat(),
             "voter": voter_name 
         }
+        if metadata:
+            new_vote["metadata"] = metadata
+            
         data["votes"].append(new_vote)
         self._write_all(data)
         return True
@@ -121,15 +124,24 @@ class DataManager:
         return False
 
     def get_voter_stats(self):
-        """Get stats on who has voted"""
+        """Get stats on who has voted including device fingerprints"""
         votes = self.load_votes()
         if not votes:
-            return pd.DataFrame(columns=["Voter", "Votes Cast", "Last Voted"])
+            return pd.DataFrame(columns=["Voter", "Votes Cast", "Last Voted", "Device Info", "IP Address"])
         
         df = pd.DataFrame(votes)
         if "voter" not in df.columns:
-             return pd.DataFrame(columns=["Voter", "Votes Cast", "Last Voted"])
+             return pd.DataFrame(columns=["Voter", "Votes Cast", "Last Voted", "Device Info", "IP Address"])
              
+        # Helper to extract metadata fields
+        def get_meta(voter_name, field):
+            voter_votes = [v for v in votes if v.get("voter") == voter_name and "metadata" in v]
+            if not voter_votes:
+                return "Unknown"
+            # Get from most recent vote
+            latest = sorted(voter_votes, key=lambda x: x['timestamp'], reverse=True)[0]
+            return latest["metadata"].get(field, "Unknown")
+
         # Group by voter
         stats = df.groupby("voter").agg({
             "category": "count",
@@ -137,6 +149,10 @@ class DataManager:
         }).reset_index()
         
         stats.columns = ["Voter", "Votes Cast", "Last Voted"]
+        
+        # Add metadata columns
+        stats["Device Info"] = stats["Voter"].apply(lambda x: get_meta(x, "user_agent"))
+        stats["IP Address"] = stats["Voter"].apply(lambda x: get_meta(x, "ip"))
         
         # Format timestamp for better readability
         stats["Last Voted"] = pd.to_datetime(stats["Last Voted"]).dt.strftime('%Y-%m-%d %H:%M')

@@ -97,6 +97,33 @@ def render_leaderboard(categories, key_prefix="default"):
         st.session_state.con_acknowledged = False
         st.rerun()
 
+def get_voter_metadata():
+    """Captures IP and Device info for auditing."""
+    try:
+        # Modern Streamlit (1.30+)
+        headers = st.context.headers
+    except:
+        try:
+            # Older versions
+            from streamlit.web.server.websocket_headers import _get_websocket_headers
+            headers = _get_websocket_headers()
+        except:
+            headers = {}
+
+    # Extract IP (Streamlit Cloud uses X-Forwarded-For)
+    ip = headers.get("X-Forwarded-For", "Unknown").split(",")[0].strip()
+    
+    # Extract User Agent and make it friendly
+    ua = headers.get("User-Agent", "Unknown")
+    device = "Desktop/Other"
+    if "iPhone" in ua: device = "iPhone"
+    elif "Android" in ua: device = "Android Phone"
+    elif "iPad" in ua: device = "iPad"
+    elif "Macintosh" in ua: device = "Mac Desktop"
+    elif "Windows" in ua: device = "Windows Desktop"
+    
+    return {"ip": ip, "user_agent": device, "raw_ua": ua}
+
 def main():
     utils.load_css()
 
@@ -221,8 +248,9 @@ def main():
                                 st.warning("Please vote for at least one category!")
                             else:
                                 success = True
+                                metadata = get_voter_metadata()
                                 for cat, name in votes_to_cast.items():
-                                    if not dm.save_vote(cat, name, voter_name):
+                                    if not dm.save_vote(cat, name, voter_name, metadata=metadata):
                                         success = False
                                 if success:
                                     st.session_state.voted = True
