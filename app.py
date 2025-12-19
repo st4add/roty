@@ -99,15 +99,14 @@ def render_leaderboard(categories, key_prefix="default"):
         st.rerun()
 
 def get_voter_metadata():
-    """Captures IP, Device, City, and Provider info for auditing."""
+    """Captures IP and Device info for auditing."""
     # 1. Get headers from Streamlit
     try:
         headers = st.context.headers
     except:
         headers = {}
 
-    # 2. Robust IP extraction (check multiple common headers used by proxies/clouds)
-    # Streamlit Cloud uses X-Forwarded-For. We want the FIRST IP in the list.
+    # 2. Robust IP extraction
     ip = "Unknown"
     for header in ["X-Forwarded-For", "x-forwarded-for", "X-Real-IP", "x-real-ip", "Remote-Addr"]:
         val = headers.get(header)
@@ -115,10 +114,8 @@ def get_voter_metadata():
             ip = val.split(",")[0].strip()
             break
     
-    # 3. Handle local testing (if still unknown or local, and NOT on cloud)
-    # We only use the ipify fallback if we are definitely not on a cloud server
-    is_cloud = any(k in headers for k in ["X-Streamlit-User", "X-Vercel-Id", "X-Forwarded-For"])
-    if not is_cloud and (ip == "Unknown" or ip.startswith("127.") or ip.startswith("192.168.")):
+    # 3. Handle local testing
+    if ip == "Unknown" or ip.startswith("127.") or ip.startswith("192.168."):
         try:
             ip = requests.get('https://api.ipify.org', timeout=2).text
         except:
@@ -133,26 +130,9 @@ def get_voter_metadata():
     elif "Macintosh" in ua: device = "Mac Desktop"
     elif "Windows" in ua: device = "Windows Desktop"
     
-    # 5. Geolocation Lookup
-    city = "Unknown"
-    isp = "Unknown"
-    if ip != "Unknown":
-        try:
-            # We use the IP we found to get the user's city/ISP
-            response = requests.get(f"http://ip-api.com/json/{ip}?fields=status,city,isp", timeout=3)
-            if response.status_code == 200:
-                geo_data = response.json()
-                if geo_data.get("status") == "success":
-                    city = geo_data.get("city", "Unknown")
-                    isp = geo_data.get("isp", "Unknown")
-        except:
-            pass
-            
     return {
         "ip": ip, 
-        "user_agent": device, 
-        "city": city,
-        "isp": isp,
+        "user_agent": device,
         "raw_ua": ua
     }
 
