@@ -202,11 +202,14 @@ def main():
                         for category in categories:
                             with st.container(border=True):
                                 st.markdown(f"**{utils.get_category_emoji(category)} {category}**")
+                                # Filter out the voter's own name so they can't vote for themselves
+                                candidate_options = [r for r in utils.RANELADS if r != voter_name]
+                                
                                 # Use a scrollable container with radio buttons to prevent keyboard popup
                                 with st.container(height=200):
                                     candidate = st.radio(
                                         f"Nominee for {category}", 
-                                        options=utils.RANELADS,
+                                        options=candidate_options,
                                         index=None,
                                         key=f"input_{category}",
                                         label_visibility="collapsed"
