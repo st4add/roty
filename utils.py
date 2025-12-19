@@ -55,6 +55,39 @@ div[data-baseweb="select"] { min-height: 45px; }
 .horse-emoji { font-size: 2.5rem; margin-right: 8px; filter: drop-shadow(2px 2px 2px rgba(0,0,0,0.3)); transform: scaleX(-1); display: inline-block; }
 .horse-name { color: white; font-weight: 800; font-size: 0.9rem; text-shadow: 1px 1px 2px black; background: rgba(0,0,0,0.4); padding: 2px 8px; border-radius: 4px; }
 .finish-line { position: absolute; right: 40px; top: 0; bottom: 0; width: 10px; background: repeating-linear-gradient(0deg, #fff, #fff 10px, #000 10px, #000 20px); box-shadow: 2px 0 5px rgba(0,0,0,0.3); z-index: 1; }
+
+/* Custom Scroll List Styling (Radio buttons look like list items) */
+div[data-testid="stRadio"] div[role="radiogroup"] {
+    gap: 0px !important;
+}
+div[data-testid="stRadio"] label {
+    background: white !important;
+    padding: 12px 16px !important;
+    border-radius: 10px !important;
+    border: 1px solid #f0f2f6 !important;
+    margin-bottom: 6px !important;
+    width: 100% !important;
+    transition: all 0.2s ease !important;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.02) !important;
+}
+div[data-testid="stRadio"] label:hover {
+    border-color: #FF4B4B !important;
+    background: #fff5f5 !important;
+}
+/* Hide the radio circle itself */
+div[data-testid="stRadio"] input[type="radio"] {
+    display: none !important;
+}
+/* Selected state styling */
+div[data-testid="stRadio"] label:has(input:checked) {
+    background: #FF4B4B !important;
+    border-color: #FF4B4B !important;
+    box-shadow: 0 4px 12px rgba(255, 75, 75, 0.2) !important;
+}
+div[data-testid="stRadio"] label:has(input:checked) p {
+    color: white !important;
+    font-weight: 700 !important;
+}
 </style>"""
     st.markdown(css, unsafe_allow_html=True)
 

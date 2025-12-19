@@ -133,15 +133,17 @@ def main():
     with tab1:
         with st.container(border=True):
             st.markdown("### 👤 Who are you?")
-            voter_name = st.selectbox(
-                "Select your identity",
-                options=["Select your name..."] + utils.RANELADS,
-                index=0,
-                label_visibility="collapsed",
-                key="voter_identity_select"
-            )
+            # Use a scrollable container with radio buttons to prevent keyboard popup
+            with st.container(height=250):
+                voter_name = st.radio(
+                    "Select your identity",
+                    options=utils.RANELADS,
+                    index=None,
+                    label_visibility="collapsed",
+                    key="voter_identity_radio"
+                )
 
-        if voter_name != "Select your name...":
+        if voter_name:
             # Check real-time database status
             has_voted_in_db = dm.has_voted(voter_name)
 
@@ -200,14 +202,16 @@ def main():
                         for category in categories:
                             with st.container(border=True):
                                 st.markdown(f"**{utils.get_category_emoji(category)} {category}**")
-                                candidate = st.selectbox(
-                                    f"Nominee for {category}", 
-                                    options=["Select a Ranelad..."] + utils.RANELADS,
-                                    index=0,
-                                    key=f"input_{category}",
-                                    label_visibility="collapsed"
-                                )
-                                if candidate and candidate != "Select a Ranelad...":
+                                # Use a scrollable container with radio buttons to prevent keyboard popup
+                                with st.container(height=200):
+                                    candidate = st.radio(
+                                        f"Nominee for {category}", 
+                                        options=utils.RANELADS,
+                                        index=None,
+                                        key=f"input_{category}",
+                                        label_visibility="collapsed"
+                                    )
+                                if candidate:
                                     votes_to_cast[category] = candidate
                         if st.form_submit_button("Submit Votes 🚀", use_container_width=True):
                             if not votes_to_cast:
@@ -257,13 +261,17 @@ def main():
             else:
                 # Create a mapping of decorated names to original names for deletion logic
                 voter_options = {utils.decorate_name(v): v for v in voters}
-                selected_display = st.selectbox(
-                    "Select voter to wipe", 
-                    options=["Select a voter..."] + list(voter_options.keys()), 
-                    key="del_voter"
-                )
                 
-                if selected_display != "Select a voter...":
+                # Use scrollable radio for admin too for consistency and mobile friendliness
+                with st.container(height=200):
+                    selected_display = st.radio(
+                        "Select voter to wipe", 
+                        options=list(voter_options.keys()), 
+                        index=None,
+                        key="del_voter_radio"
+                    )
+                
+                if selected_display:
                     voter_to_delete = voter_options[selected_display]
                     delpass = st.text_input("Enter DELPASS", type="password", key="del_pass")
                     if st.checkbox(f"Confirm wipe for {voter_to_delete}", key="del_conf"):
