@@ -3,6 +3,7 @@ import plotly.express as px
 import pandas as pd
 import time
 import requests
+import random
 from data_manager import DataManager
 import utils 
 
@@ -96,6 +97,9 @@ def render_leaderboard(categories, key_prefix="default"):
     if st.button("Refresh & Sync Everything 🔄", key=f"refresh_btn_{key_prefix}", use_container_width=True):
         st.session_state.voted = False
         st.session_state.con_acknowledged = False
+        st.session_state.vip_acknowledged = False
+        st.session_state.pleb_acknowledged = False
+        if 'current_pleb_msg' in st.session_state: del st.session_state.current_pleb_msg
         st.rerun()
 
 def get_voter_metadata():
@@ -166,6 +170,10 @@ def main():
         st.session_state.voted = False
     if 'con_acknowledged' not in st.session_state:
         st.session_state.con_acknowledged = False
+    if 'vip_acknowledged' not in st.session_state:
+        st.session_state.vip_acknowledged = False
+    if 'pleb_acknowledged' not in st.session_state:
+        st.session_state.pleb_acknowledged = False
 
     tab1, tab2, tab3, tab4 = st.tabs(["🗳️ Vote", "📊 Leaderboard", "📋 Voter Log", "🛠️ Admin"])
 
@@ -232,6 +240,84 @@ def main():
                         if st.button(f"I, {voter_name}, acknowledge this fact 😔"):
                             st.session_state.con_acknowledged = True
                             st.rerun()
+                
+                # Handle VIP Hall of Fame popup
+                elif "👑" in voter_name and not st.session_state.vip_acknowledged:
+                    dialog_func = getattr(st, "dialog", getattr(st, "experimental_dialog", None))
+                    if dialog_func:
+                        @dialog_func("👑 Hall of Fame Welcome")
+                        def vip_modal():
+                            st.write("Before you proceed, we must acknowledge your status.")
+                            st.success("Welcome esteemed former ROTY and hall of famer! Enjoy your evening.")
+                            st.markdown("""
+                                <style>
+                                div[role="dialog"] button, div[role="dialog"] [data-baseweb="button"] button {
+                                    background-color: #000000 !important;
+                                    border: 2px solid #FF4B4B !important;
+                                }
+                                div[role="dialog"] button *, div[role="dialog"] [data-baseweb="button"] button * {
+                                    color: #FFFFFF !important;
+                                    -webkit-text-fill-color: #FFFFFF !important;
+                                    font-weight: 800 !important;
+                                }
+                                </style>
+                            """, unsafe_allow_html=True)
+                            if st.button("Proceed to voting", use_container_width=True):
+                                st.session_state.vip_acknowledged = True
+                                st.rerun()
+                        vip_modal()
+                        st.info("Please acknowledge the welcome message to continue.")
+                    else:
+                        st.success("👑 Welcome esteemed former ROTY and hall of famer! Enjoy your evening.")
+                        if st.button("Proceed to voting"):
+                            st.session_state.vip_acknowledged = True
+                            st.rerun()
+                
+                # Handle Everyone Else (Random Outlandish Popups)
+                elif not st.session_state.pleb_acknowledged:
+                    PLEB_MESSAGES = [
+                        ("🎄 Christmas Special", "Merry Christmas, ya filthy animal! Try not to ruin the party by being yourself."),
+                        ("🕵️ Scanning Results", "Zero awards detected. Scanning for personality... Error 404: Not Found. Proceed at your own risk."),
+                        ("🧐 Commoner Alert", "A mere commoner approaches! Please ensure you do not make direct eye contact with the former winners."),
+                        ("🤡 Statistics Corner", "Did you know? 99% of people with your profile never win anything. You are the 99%."),
+                        ("🍗 Festive Greeting", "I hope you enjoy your coal this year. It's the only thing you're likely to receive."),
+                    ]
+                    
+                    # Select a random message for this session
+                    if 'current_pleb_msg' not in st.session_state:
+                        st.session_state.current_pleb_msg = random.choice(PLEB_MESSAGES)
+                    
+                    title, msg = st.session_state.current_pleb_msg
+                    
+                    dialog_func = getattr(st, "dialog", getattr(st, "experimental_dialog", None))
+                    if dialog_func:
+                        @dialog_func(title)
+                        def pleb_modal():
+                            st.write(msg)
+                            st.markdown("""
+                                <style>
+                                div[role="dialog"] button, div[role="dialog"] [data-baseweb="button"] button {
+                                    background-color: #000000 !important;
+                                    border: 2px solid #FF4B4B !important;
+                                }
+                                div[role="dialog"] button *, div[role="dialog"] [data-baseweb="button"] button * {
+                                    color: #FFFFFF !important;
+                                    -webkit-text-fill-color: #FFFFFF !important;
+                                    font-weight: 800 !important;
+                                }
+                                </style>
+                            """, unsafe_allow_html=True)
+                            if st.button("I accept my fate 😔", use_container_width=True):
+                                st.session_state.pleb_acknowledged = True
+                                st.rerun()
+                        pleb_modal()
+                        st.info("Please acknowledge the message to continue.")
+                    else:
+                        st.warning(f"{title}: {msg}")
+                        if st.button("I accept my fate 😔"):
+                            st.session_state.pleb_acknowledged = True
+                            st.rerun()
+                
                 else:
                     # Show the actual voting form
                     with st.form("voting_form"):
@@ -350,6 +436,10 @@ def main():
                         dm.clear_votes()
                         st.session_state.clear_clicks = 0
                         st.session_state.voted = False
+                        st.session_state.con_acknowledged = False
+                        st.session_state.vip_acknowledged = False
+                        st.session_state.pleb_acknowledged = False
+                        if 'current_pleb_msg' in st.session_state: del st.session_state.current_pleb_msg
                         st.toast("Wiped everything!", icon="🗑️")
                         time.sleep(1)
                         st.rerun()
