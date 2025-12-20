@@ -46,14 +46,16 @@ def check_password():
     )
     return False
 
-# Helper for live updates (st.fragment is preferred if available)
-def live_update_wrapper(func):
-    if hasattr(st, "fragment"):
-        return st.fragment(run_every=1)(func)
-    return func
+# Helper for live updates
+if hasattr(st, "fragment"):
+    @st.fragment(run_every=1)
+    def render_leaderboard(categories, key_prefix="default"):
+        _internal_render_leaderboard(categories, key_prefix)
+else:
+    def render_leaderboard(categories, key_prefix="default"):
+        _internal_render_leaderboard(categories, key_prefix)
 
-@live_update_wrapper
-def render_leaderboard(categories, key_prefix="default"):
+def _internal_render_leaderboard(categories, key_prefix="default"):
     # Check if results are locked
     settings = dm.get_settings()
     is_locked = settings.get("results_locked", False)
@@ -64,6 +66,7 @@ def render_leaderboard(categories, key_prefix="default"):
         st.session_state[bypass_key] = False
         
     if is_locked and not st.session_state[bypass_key]:
+        st.markdown("### 📈 Live Results")
         st.warning("🔒 The live results are currently locked by the Admin.")
         
         with st.expander("Admin? Unlock to view"):
@@ -76,6 +79,22 @@ def render_leaderboard(categories, key_prefix="default"):
                     st.error("Incorrect password")
         return
 
+    # Header with Live Indicator
+    col1, col2 = st.columns([1, 1])
+    with col1:
+        st.markdown("### 📈 Live Results")
+    with col2:
+        # Pulsing Live indicator
+        st.markdown(f"""
+            <div style='display: flex; align-items: center; justify-content: flex-end; gap: 8px; color: #ff4b4b; font-weight: bold; padding-top: 10px;'>
+                <span style='height: 10px; width: 10px; background-color: #ff4b4b; border-radius: 50%; display: inline-block; animation: blink 1s infinite;'></span>
+                LIVE <span style='color: #666; font-size: 0.8rem; font-weight: normal;'>({pd.Timestamp.now().strftime('%H:%M:%S')})</span>
+            </div>
+            <style>
+                @keyframes blink {{ 0% {{ opacity: 1; }} 50% {{ opacity: 0.3; }} 100% {{ opacity: 1; }} }}
+            </style>
+        """, unsafe_allow_html=True)
+
     # Container for the live race
     race_container = st.container()
     
@@ -83,16 +102,14 @@ def render_leaderboard(categories, key_prefix="default"):
         df = dm.get_results_df()
         
         for category in categories:
-            # We call the function directly from the module
             try:
                 html_str = utils.render_horse_race_html(category, df)
                 if hasattr(st, "html"):
                     st.html(html_str)
                 else:
                     st.markdown(html_str, unsafe_allow_html=True)
-            except AttributeError:
-                st.error("Wait... system is updating. Please refresh in 5 seconds.")
-                st.stop()
+            except Exception as e:
+                st.error("Updating race track...")
 
     if st.button("Refresh & Sync Everything 🔄", key=f"refresh_btn_{key_prefix}", use_container_width=True):
         st.session_state.voted = False
@@ -200,14 +217,20 @@ def main():
                  else:
                      st.info(f"Welcome back, {utils.decorate_name(voter_name)}! You have already cast your votes.")
                  
-                 render_leaderboard(
-                     categories=[
-                        "Ranelad of the Year",
-                        "Worst Ranelad of the Year",
-                        "Most Improved Ranelad"
-                     ], 
-                     key_prefix="post_vote"
-                 )
+                 # Version-safe live leaderboard
+                 def render_post_vote():
+                     df = dm.get_results_df()
+                     st.markdown("### 📈 Current Race Standings")
+                     for category in ["Ranelad of the Year", "Worst Ranelad of the Year", "Most Improved Ranelad"]:
+                         html_str = utils.render_horse_race_html(category, df)
+                         if hasattr(st, "html"): st.html(html_str)
+                         else: st.markdown(html_str, unsafe_allow_html=True)
+                 
+                 if hasattr(st, "fragment"):
+                     st.fragment(run_every=1)(render_post_vote)()
+                 else:
+                     render_post_vote()
+                     st.info("💡 Tip: Refresh to see new votes, or upgrade Streamlit for live updates!")
             else:
                 # Handle Con's special acknowledgement locally in tab1
                 if "Con" in voter_name and not st.session_state.con_acknowledged:
@@ -361,10 +384,64 @@ def main():
             st.info("Please select your name above to start voting!")
 
     with tab2:
-        render_leaderboard(
-            categories=["Ranelad of the Year", "Worst Ranelad of the Year", "Most Improved Ranelad"],
-            key_prefix="main_tab"
-        )
+        def render_main_leaderboard():
+            # 1. Check Visibility
+            settings = dm.get_settings()
+            is_locked = settings.get("results_locked", False)
+            bypass_key = "results_unlocked_main_tab"
+            
+            if is_locked and not st.session_state.get(bypass_key, False):
+                st.markdown("### 📈 Live Results")
+                st.warning("🔒 The live results are currently locked by the Admin.")
+                with st.expander("Admin? Unlock to view"):
+                    unlock_pass = st.text_input("Enter DELPASS to view", type="password", key="side_unlock_pass")
+                    if st.button("Unlock Results", key="side_unlock_btn", use_container_width=True):
+                        if "DELPASS" in st.secrets and unlock_pass == st.secrets["DELPASS"]:
+                            st.session_state[bypass_key] = True
+                            st.rerun()
+                        else:
+                            st.error("Incorrect password")
+                return
+
+            # 2. Header with Active Clock
+            col1, col2 = st.columns([1, 1])
+            with col1:
+                st.markdown("### 📈 Live Results")
+            with col2:
+                # Only show ticking clock if live features are supported
+                if hasattr(st, "fragment"):
+                    st.markdown(f"""
+                        <div style='display: flex; align-items: center; justify-content: flex-end; gap: 8px; color: #ff4b4b; font-weight: bold; padding-top: 10px;'>
+                            <span style='height: 10px; width: 10px; background-color: #ff4b4b; border-radius: 50%; display: inline-block; animation: blink 1s infinite;'></span>
+                            LIVE <span style='color: #666; font-size: 0.8rem; font-weight: normal;'>({pd.Timestamp.now().strftime('%H:%M:%S')})</span>
+                        </div>
+                        <style>@keyframes blink {{ 0% {{ opacity: 1; }} 50% {{ opacity: 0.3; }} 100% {{ opacity: 1; }} }}</style>
+                    """, unsafe_allow_html=True)
+
+            # 3. Render Races
+            df = dm.get_results_df()
+            categories = ["Ranelad of the Year", "Worst Ranelad of the Year", "Most Improved Ranelad"]
+            for category in categories:
+                html_str = utils.render_horse_race_html(category, df)
+                if hasattr(st, "html"):
+                    st.html(html_str)
+                else:
+                    st.markdown(html_str, unsafe_allow_html=True)
+            
+            # Sync button
+            if st.button("Refresh & Sync Everything 🔄", key="refresh_btn_main_tab", use_container_width=True):
+                st.session_state.voted = False
+                st.session_state.con_acknowledged = False
+                st.session_state.vip_acknowledged = False
+                st.session_state.pleb_acknowledged = False
+                if 'current_pleb_msg' in st.session_state: del st.session_state.current_pleb_msg
+                st.rerun()
+
+        if hasattr(st, "fragment"):
+            st.fragment(run_every=1)(render_main_leaderboard)()
+        else:
+            render_main_leaderboard()
+            st.info("💡 Upgrade Streamlit to see horses move in real-time!")
 
     with tab3:
         st.markdown("### 📋 Voter Turnout")

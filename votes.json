@@ -1,5 +1,336 @@
 {
-    "votes": [],
+    "votes": [
+        {
+            "category": "Ranelad of the Year",
+            "candidate": "Lorcan",
+            "timestamp": "2025-12-20T12:48:13.407992",
+            "voter": "Hugo",
+            "metadata": {
+                "ip": "192.168.1.202",
+                "user_agent": "Android Phone",
+                "raw_ua": "Simulated/1.0"
+            }
+        },
+        {
+            "category": "Worst Ranelad of the Year",
+            "candidate": "Cramps",
+            "timestamp": "2025-12-20T12:48:14.234661",
+            "voter": "Hugo",
+            "metadata": {
+                "ip": "192.168.1.202",
+                "user_agent": "Android Phone",
+                "raw_ua": "Simulated/1.0"
+            }
+        },
+        {
+            "category": "Most Improved Ranelad",
+            "candidate": "Kill \ud83d\udc51",
+            "timestamp": "2025-12-20T12:48:14.848916",
+            "voter": "Hugo",
+            "metadata": {
+                "ip": "192.168.1.202",
+                "user_agent": "Android Phone",
+                "raw_ua": "Simulated/1.0"
+            }
+        },
+        {
+            "category": "Ranelad of the Year",
+            "candidate": "Gibb",
+            "timestamp": "2025-12-20T12:48:20.035710",
+            "voter": "Vinny",
+            "metadata": {
+                "ip": "192.168.1.150",
+                "user_agent": "iPad",
+                "raw_ua": "Simulated/1.0"
+            }
+        },
+        {
+            "category": "Worst Ranelad of the Year",
+            "candidate": "Lorcan",
+            "timestamp": "2025-12-20T12:48:20.767078",
+            "voter": "Vinny",
+            "metadata": {
+                "ip": "192.168.1.150",
+                "user_agent": "iPad",
+                "raw_ua": "Simulated/1.0"
+            }
+        },
+        {
+            "category": "Most Improved Ranelad",
+            "candidate": "Rob \ud83d\udc51",
+            "timestamp": "2025-12-20T12:48:21.679340",
+            "voter": "Vinny",
+            "metadata": {
+                "ip": "192.168.1.150",
+                "user_agent": "iPad",
+                "raw_ua": "Simulated/1.0"
+            }
+        },
+        {
+            "category": "Ranelad of the Year",
+            "candidate": "Kill \ud83d\udc51",
+            "timestamp": "2025-12-20T12:48:27.380326",
+            "voter": "Carl",
+            "metadata": {
+                "ip": "192.168.1.214",
+                "user_agent": "iPhone",
+                "raw_ua": "Simulated/1.0"
+            }
+        },
+        {
+            "category": "Worst Ranelad of the Year",
+            "candidate": "Thilo",
+            "timestamp": "2025-12-20T12:48:28.142340",
+            "voter": "Carl",
+            "metadata": {
+                "ip": "192.168.1.214",
+                "user_agent": "iPhone",
+                "raw_ua": "Simulated/1.0"
+            }
+        },
+        {
+            "category": "Most Improved Ranelad",
+            "candidate": "Vinny",
+            "timestamp": "2025-12-20T12:48:28.785092",
+            "voter": "Carl",
+            "metadata": {
+                "ip": "192.168.1.214",
+                "user_agent": "iPhone",
+                "raw_ua": "Simulated/1.0"
+            }
+        },
+        {
+            "category": "Ranelad of the Year",
+            "candidate": "Ois",
+            "timestamp": "2025-12-20T12:48:34.781757",
+            "voter": "Thilo",
+            "metadata": {
+                "ip": "192.168.1.29",
+                "user_agent": "Windows Desktop",
+                "raw_ua": "Simulated/1.0"
+            }
+        },
+        {
+            "category": "Worst Ranelad of the Year",
+            "candidate": "Hugo",
+            "timestamp": "2025-12-20T12:48:36.241807",
+            "voter": "Thilo",
+            "metadata": {
+                "ip": "192.168.1.29",
+                "user_agent": "Windows Desktop",
+                "raw_ua": "Simulated/1.0"
+            }
+        },
+        {
+            "category": "Most Improved Ranelad",
+            "candidate": "Josh",
+            "timestamp": "2025-12-20T12:48:36.750307",
+            "voter": "Thilo",
+            "metadata": {
+                "ip": "192.168.1.29",
+                "user_agent": "Windows Desktop",
+                "raw_ua": "Simulated/1.0"
+            }
+        },
+        {
+            "category": "Ranelad of the Year",
+            "candidate": "Simo \ud83d\udc51",
+            "timestamp": "2025-12-20T12:48:42.185631",
+            "voter": "Con \ud83d\udca9\ud83d\udca9",
+            "metadata": {
+                "ip": "192.168.1.225",
+                "user_agent": "iPad",
+                "raw_ua": "Simulated/1.0"
+            }
+        },
+        {
+            "category": "Worst Ranelad of the Year",
+            "candidate": "Hugo",
+            "timestamp": "2025-12-20T12:48:43.483505",
+            "voter": "Con \ud83d\udca9\ud83d\udca9",
+            "metadata": {
+                "ip": "192.168.1.225",
+                "user_agent": "iPad",
+                "raw_ua": "Simulated/1.0"
+            }
+        },
+        {
+            "category": "Most Improved Ranelad",
+            "candidate": "Boydie",
+            "timestamp": "2025-12-20T12:48:44.378452",
+            "voter": "Con \ud83d\udca9\ud83d\udca9",
+            "metadata": {
+                "ip": "192.168.1.225",
+                "user_agent": "iPad",
+                "raw_ua": "Simulated/1.0"
+            }
+        },
+        {
+            "category": "Ranelad of the Year",
+            "candidate": "Jack \ud83d\udc51",
+            "timestamp": "2025-12-20T12:48:49.394385",
+            "voter": "Gibb",
+            "metadata": {
+                "ip": "192.168.1.98",
+                "user_agent": "iPad",
+                "raw_ua": "Simulated/1.0"
+            }
+        },
+        {
+            "category": "Worst Ranelad of the Year",
+            "candidate": "Ois",
+            "timestamp": "2025-12-20T12:48:50.467929",
+            "voter": "Gibb",
+            "metadata": {
+                "ip": "192.168.1.98",
+                "user_agent": "iPad",
+                "raw_ua": "Simulated/1.0"
+            }
+        },
+        {
+            "category": "Most Improved Ranelad",
+            "candidate": "Petch",
+            "timestamp": "2025-12-20T12:48:51.310711",
+            "voter": "Gibb",
+            "metadata": {
+                "ip": "192.168.1.98",
+                "user_agent": "iPad",
+                "raw_ua": "Simulated/1.0"
+            }
+        },
+        {
+            "category": "Ranelad of the Year",
+            "candidate": "Jam",
+            "timestamp": "2025-12-20T12:48:57.720002",
+            "voter": "Petch",
+            "metadata": {
+                "ip": "192.168.1.20",
+                "user_agent": "iPhone",
+                "raw_ua": "Simulated/1.0"
+            }
+        },
+        {
+            "category": "Worst Ranelad of the Year",
+            "candidate": "Pauly",
+            "timestamp": "2025-12-20T12:48:58.882817",
+            "voter": "Petch",
+            "metadata": {
+                "ip": "192.168.1.20",
+                "user_agent": "iPhone",
+                "raw_ua": "Simulated/1.0"
+            }
+        },
+        {
+            "category": "Most Improved Ranelad",
+            "candidate": "Enda",
+            "timestamp": "2025-12-20T12:49:00.225423",
+            "voter": "Petch",
+            "metadata": {
+                "ip": "192.168.1.20",
+                "user_agent": "iPhone",
+                "raw_ua": "Simulated/1.0"
+            }
+        },
+        {
+            "category": "Ranelad of the Year",
+            "candidate": "Lorcan",
+            "timestamp": "2025-12-20T12:49:06.501334",
+            "voter": "Ollie",
+            "metadata": {
+                "ip": "192.168.1.108",
+                "user_agent": "Windows Desktop",
+                "raw_ua": "Simulated/1.0"
+            }
+        },
+        {
+            "category": "Worst Ranelad of the Year",
+            "candidate": "Carl",
+            "timestamp": "2025-12-20T12:49:07.958878",
+            "voter": "Ollie",
+            "metadata": {
+                "ip": "192.168.1.108",
+                "user_agent": "Windows Desktop",
+                "raw_ua": "Simulated/1.0"
+            }
+        },
+        {
+            "category": "Most Improved Ranelad",
+            "candidate": "Con \ud83d\udca9\ud83d\udca9",
+            "timestamp": "2025-12-20T12:49:08.492409",
+            "voter": "Ollie",
+            "metadata": {
+                "ip": "192.168.1.108",
+                "user_agent": "Windows Desktop",
+                "raw_ua": "Simulated/1.0"
+            }
+        },
+        {
+            "category": "Ranelad of the Year",
+            "candidate": "Ollie",
+            "timestamp": "2025-12-20T12:49:13.973265",
+            "voter": "Lorcan",
+            "metadata": {
+                "ip": "192.168.1.23",
+                "user_agent": "iPhone",
+                "raw_ua": "Simulated/1.0"
+            }
+        },
+        {
+            "category": "Worst Ranelad of the Year",
+            "candidate": "Hugo",
+            "timestamp": "2025-12-20T12:49:14.552316",
+            "voter": "Lorcan",
+            "metadata": {
+                "ip": "192.168.1.23",
+                "user_agent": "iPhone",
+                "raw_ua": "Simulated/1.0"
+            }
+        },
+        {
+            "category": "Most Improved Ranelad",
+            "candidate": "Carl",
+            "timestamp": "2025-12-20T12:49:15.333642",
+            "voter": "Lorcan",
+            "metadata": {
+                "ip": "192.168.1.23",
+                "user_agent": "iPhone",
+                "raw_ua": "Simulated/1.0"
+            }
+        },
+        {
+            "category": "Ranelad of the Year",
+            "candidate": "Kill \ud83d\udc51",
+            "timestamp": "2025-12-20T12:49:18.724230",
+            "voter": "Monz",
+            "metadata": {
+                "ip": "192.168.1.107",
+                "user_agent": "Mac Desktop",
+                "raw_ua": "Simulated/1.0"
+            }
+        },
+        {
+            "category": "Worst Ranelad of the Year",
+            "candidate": "Vinny",
+            "timestamp": "2025-12-20T12:49:19.725982",
+            "voter": "Monz",
+            "metadata": {
+                "ip": "192.168.1.107",
+                "user_agent": "Mac Desktop",
+                "raw_ua": "Simulated/1.0"
+            }
+        },
+        {
+            "category": "Most Improved Ranelad",
+            "candidate": "Petch",
+            "timestamp": "2025-12-20T12:49:20.500356",
+            "voter": "Monz",
+            "metadata": {
+                "ip": "192.168.1.107",
+                "user_agent": "Mac Desktop",
+                "raw_ua": "Simulated/1.0"
+            }
+        }
+    ],
     "settings": {
         "results_locked": false
     }
