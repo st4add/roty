@@ -382,5 +382,54 @@ def main():
                     else:
                         st.error("Wrong password")
 
+    # --- Secret Sidebar Breakdown ---
+    with st.sidebar:
+        st.markdown("### 🕵️ God View")
+        if "sidebar_authenticated" not in st.session_state:
+            st.session_state.sidebar_authenticated = False
+            
+        if not st.session_state.sidebar_authenticated:
+            side_pass = st.text_input("Enter Admin Password", type="password", key="sidebar_pass_input")
+            if st.button("Unlock Breakdown", use_container_width=True):
+                if "DELPASS" in st.secrets and side_pass == st.secrets["DELPASS"]:
+                    st.session_state.sidebar_authenticated = True
+                    st.rerun()
+                else:
+                    st.error("Incorrect password")
+        else:
+            st.success("Access Granted")
+            if st.button("Lock Sidebar", use_container_width=True):
+                st.session_state.sidebar_authenticated = False
+                st.rerun()
+                
+            st.markdown("#### 🗳️ Detailed Vote Log")
+            votes = dm.load_votes()
+            if not votes:
+                st.info("No votes cast yet.")
+            else:
+                # Prepare data for display
+                detailed_data = []
+                for v in votes:
+                    detailed_data.append({
+                        "Voter": utils.decorate_name(v.get("voter", "Unknown")),
+                        "Category": v.get("category", "Unknown"),
+                        "Nominee": utils.decorate_name(v.get("candidate", "Unknown")),
+                        "Time": pd.to_datetime(v.get("timestamp")).strftime('%H:%M:%S') if v.get("timestamp") else "Unknown"
+                    })
+                
+                df_detailed = pd.DataFrame(detailed_data)
+                # Show table without index for a cleaner look
+                st.dataframe(df_detailed, hide_index=True, use_container_width=True)
+                
+                # Option to download as CSV for record keeping
+                csv = df_detailed.to_csv(index=False).encode('utf-8')
+                st.download_button(
+                    label="📥 Download CSV",
+                    data=csv,
+                    file_name=f"roty_votes_detailed_{pd.Timestamp.now().strftime('%Y%m%d_%H%M')}.csv",
+                    mime="text/csv",
+                    use_container_width=True
+                )
+
 if __name__ == "__main__":
     main()
